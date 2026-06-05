@@ -3,17 +3,20 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class GridRenderer : MonoBehaviour
 {
-    [Header("Grid Size")]
-    public int gridWidth = 10;
-    public int gridHeight = 10;
-    public float cellSize = 1f;
+    public int gridWidth = GameManager.MAP_WIDTH;
+    public int gridHeight = GameManager.MAP_HEIGHT;
+    public float cellSize = GameManager.CELL_SIZE;
 
-    [Header("Visual")]
-    public Color lineColor = new Color(0.4f, 0.4f, 0.4f, 1f);
-    public float lineWidth = 0.04f;
+    public Color lineColor = GameManager.GRID_LINE_COLOR;
+    public float lineWidth = GameManager.GRID_LINE_WIDTH;
 
     void Start()
     {
+        gridWidth = GameManager.MAP_WIDTH;
+        gridHeight = GameManager.MAP_HEIGHT;
+        cellSize = GameManager.CELL_SIZE;
+        lineColor = GameManager.GRID_LINE_COLOR;
+        lineWidth = GameManager.GRID_LINE_WIDTH;
         BuildGridMesh();
     }
 
@@ -27,7 +30,6 @@ public class GridRenderer : MonoBehaviour
         float totalW = gridWidth * cellSize;
         float totalH = gridHeight * cellSize;
 
-        // vertical lines
         for (int x = 0; x <= gridWidth; x++)
         {
             float xPos = x * cellSize;
@@ -38,7 +40,6 @@ public class GridRenderer : MonoBehaviour
                 new Vector3(xPos + w, totalH));
         }
 
-        // horizontal lines
         for (int y = 0; y <= gridHeight; y++)
         {
             float yPos = y * cellSize;
@@ -62,7 +63,6 @@ public class GridRenderer : MonoBehaviour
         mat.color = lineColor;
         mr.material = mat;
 
-        // render behind player (player should be at z=0, grid at z=0.1)
         transform.position = new Vector3(0f, 0f, 0.1f);
     }
 
@@ -73,9 +73,22 @@ public class GridRenderer : MonoBehaviour
         Vector3 bl, Vector3 br, Vector3 tl, Vector3 tr)
     {
         int i = verts.Count;
-        verts.Add(bl); verts.Add(br); verts.Add(tl); verts.Add(tr);
-        tris.Add(i); tris.Add(i + 2); tris.Add(i + 1);
-        tris.Add(i + 1); tris.Add(i + 2); tris.Add(i + 3);
-        cols.Add(lineColor); cols.Add(lineColor); cols.Add(lineColor); cols.Add(lineColor);
+
+        verts.Add(bl);
+        verts.Add(br);
+        verts.Add(tl);
+        verts.Add(tr);
+
+        tris.Add(i);
+        tris.Add(i + 2);
+        tris.Add(i + 1);
+        tris.Add(i + 1);
+        tris.Add(i + 2);
+        tris.Add(i + 3);
+
+        cols.Add(lineColor);
+        cols.Add(lineColor);
+        cols.Add(lineColor);
+        cols.Add(lineColor);
     }
 }
