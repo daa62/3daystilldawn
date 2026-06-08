@@ -44,9 +44,17 @@ public class GameManager : MonoBehaviour
 
     public const string WHITE_TILE_SPRITE = "Sprites/Tiles/White";
     public const string WALL_TILE_SPRITE = "Sprites/Tiles/Blue";
-    public const string TRAP_TILE_SPRITE = "Sprites/Tiles/Red";
+    public const string SLOW_TILE_SPRITE = "Sprites/Tiles/Slow";
+    public const string SLIDE_TILE_SPRITE = "Sprites/Tiles/Slide";
 
-    public const int DEMO_TRAP_TILE_INTERVAL = 13;
+    public const float SLOW_TILE_DURATION = 3f;
+    public const float SLOW_TILE_SPEED_MULTIPLIER = 0.5f;
+    public const int SLIDE_TILE_CELLS = 3;
+    public const float SLIDE_TILE_DURATION = 1f;
+
+    public const int MAP_SAFE_ROWS = 5;
+    public const float SLOW_TILE_SPAWN_CHANCE = 0.025f;
+    public const float SLIDE_TILE_SPAWN_CHANCE = 0.025f;
 
     public static GameManager Instance { get; private set; }
 

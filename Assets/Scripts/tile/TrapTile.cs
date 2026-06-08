@@ -1,8 +1,8 @@
-using System;
-
-public class TrapTile : AbstractTile
+public abstract class TrapTile : AbstractTile
 {
-    public TrapTile(Action<BaseEntity> trigger = null) : base("trap", GameManager.TRAP_TILE_SPRITE, trigger)
+    protected TrapTile(string id, string spritePath) : base(id, spritePath)
     {
     }
+
+    public override abstract void onStep(BaseEntity entity);
 }

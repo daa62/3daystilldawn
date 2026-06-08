@@ -47,22 +47,31 @@ public class GridMap : BaseMap
     private void buildStage()
     {
         tiles = new AbstractTile[width, height];
+        var rng = new System.Random();
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                tiles[x, y] = createDemoTile(x, y);
+                tiles[x, y] = createTile(x, y, rng);
             }
         }
     }
 
-    private AbstractTile createDemoTile(int x, int y)
+    private AbstractTile createTile(int x, int y, System.Random rng)
     {
         if (x == 0 || x == width - 1) {
             return new WallTile();
         }
 
-        if (y > 0 && y % GameManager.DEMO_TRAP_TILE_INTERVAL == 0 && x > 2 && x < width - 3) {
-            return new TrapTile(entity => { });
+        if (y < GameManager.MAP_SAFE_ROWS) {
+            return new DefaultTile();
+        }
+
+        double roll = rng.NextDouble();
+        if (roll < GameManager.SLOW_TILE_SPAWN_CHANCE) {
+            return new SlowTrapTile();
+        }
+        if (roll < GameManager.SLOW_TILE_SPAWN_CHANCE + GameManager.SLIDE_TILE_SPAWN_CHANCE) {
+            return new SlideTrapTile();
         }
 
         return new DefaultTile();
