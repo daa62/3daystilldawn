@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
     public const string ANTLION_SPRITE = "Sprites/Entities/Antlion";
     public const string FALLBACK_PLAYER_SPRITE = "Sprites/Player";
 
-    public const float ANTLION_SPEED = 1.6f;
+    public const float ANTLION_SPEED = 3.5f;
     public const float ANTLION_CATCH_UP_SPEED = 6f;
     public const float ANTLION_X_ALIGN_TIME = 0.15f;
     public const float ANTLION_START_Y_OFFSET = 14f;
@@ -56,6 +56,7 @@ public class GameManager : MonoBehaviour
     public const int MAP_SAFE_ROWS = 5;
     public const float SLOW_TILE_SPAWN_CHANCE = 0.025f;
     public const float SLIDE_TILE_SPAWN_CHANCE = 0.025f;
+    public const float WALL_TILE_SPAWN_CHANCE = 0.10f;
 
     public static GameManager Instance { get; private set; }
 

@@ -73,6 +73,9 @@ public class GridMap : BaseMap
         if (roll < GameManager.SLOW_TILE_SPAWN_CHANCE + GameManager.SLIDE_TILE_SPAWN_CHANCE) {
             return new SlideTrapTile();
         }
+        if (roll < GameManager.SLOW_TILE_SPAWN_CHANCE + GameManager.SLIDE_TILE_SPAWN_CHANCE + GameManager.WALL_TILE_SPAWN_CHANCE) {
+            return new WallTile();
+        }
 
         return new DefaultTile();
     }
