@@ -6,6 +6,8 @@ public class Player : BaseEntity
 
     private float lastMoveTime = -999f;
     private float slowEffectEndTime = -1f;
+    private float stunEffectEndTime = -1f;
+    private int slidePreservedYaw = 0;
     private int slideCellsRemaining = 0;
     private float slideNextMoveTime = -1f;
 
@@ -16,13 +18,33 @@ public class Player : BaseEntity
 
     public void applySlowEffect(float duration)
     {
+        if (Time.time >= slowEffectEndTime) {
+            FloatingText.Spawn("Slowed!", transform.position, new Color(1f, 0.8f, 0f));
+            GameManager.Instance.addScore(-25);
+        }
         slowEffectEndTime = Time.time + duration;
+    }
+
+    public void applyStunEffect(float duration)
+    {
+        if (Time.time >= stunEffectEndTime) {
+            FloatingText.Spawn("Stunned!", transform.position, Color.red);
+            GameManager.Instance.addScore(-75);
+        }
+        stunEffectEndTime = Time.time + duration;
+    }
+
+    public bool isStunned()
+    {
+        return Time.time < stunEffectEndTime;
     }
 
     public void applySlideEffect(int cells)
     {
         slideCellsRemaining = cells;
         slideNextMoveTime = Time.time;
+        slidePreservedYaw = getYaw();
+        FloatingText.Spawn("Be Careful!", transform.position, new Color(1f, 0.4f, 0f));
     }
 
     private float getEffectiveCooldown()
@@ -34,13 +56,14 @@ public class Player : BaseEntity
 
     public override void tick()
     {
-        if (isMoving) {
+        if (isMoving || isStunned()) {
             return;
         }
 
         if (slideCellsRemaining > 0) {
             if (Time.time >= slideNextMoveTime) {
                 if (move(Vector2Int.down)) {
+                    setYaw(slidePreservedYaw);
                     slideCellsRemaining--;
                     slideNextMoveTime += GameManager.SLIDE_CELL_INTERVAL;
                 } else {
