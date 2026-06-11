@@ -6,7 +6,9 @@ public class SlideTrapTile : TrapTile
 
     public override void onStep(BaseEntity entity)
     {
-        if (entity is Player player)
+        if (entity is Player player) {
             player.applySlideEffect(GameManager.SLIDE_TILE_CELLS);
+            GameManager.Instance.addScore(-50);
+        }
     }
 }
