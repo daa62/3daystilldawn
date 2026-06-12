@@ -8,7 +8,6 @@ public class SlideTrapTile : TrapTile
     {
         if (entity is Player player) {
             player.applySlideEffect(GameManager.SLIDE_TILE_CELLS);
-            GameManager.Instance.addScore(-50);
         }
     }
 }

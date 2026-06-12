@@ -4,6 +4,7 @@ public class CollectibleEntity : BaseEntity
 {
     private Vector2Int spawnPos = new Vector2Int(-1, -1);
     private bool collected = false;
+    private Player player;
 
     public void setSpawnPosition(Vector2Int pos)
     {
@@ -16,14 +17,19 @@ public class CollectibleEntity : BaseEntity
         base.Start();
         transform.rotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4) * 90f);
         GetComponent<SpriteRenderer>().sortingOrder = 0;
+        player = FindAnyObjectByType<Player>();
     }
 
     public override void tick()
     {
         if (collected) return;
 
-        Player player = FindAnyObjectByType<Player>();
-        if (player != null && gridPos == player.getGridPos()) {
+        if (player == null) {
+            player = FindAnyObjectByType<Player>();
+            if (player == null) return;
+        }
+
+        if (gridPos == player.getGridPos()) {
             collected = true;
             GameManager.Instance.addScore(GameManager.COLLECTIBLE_SCORE_VALUE);
             FloatingText.Spawn($"+{GameManager.COLLECTIBLE_SCORE_VALUE}", transform.position, Color.yellow);

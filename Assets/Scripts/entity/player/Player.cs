@@ -43,6 +43,7 @@ public class Player : BaseEntity
         slideCellsRemaining = cells;
         slideNextMoveTime = Time.time;
         FloatingText.Spawn("Be Careful!", transform.position, new Color(1f, 0.4f, 0f));
+        GameManager.Instance.addScore(-50);
     }
 
     private float getEffectiveCooldown()
