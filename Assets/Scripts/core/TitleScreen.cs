@@ -27,6 +27,8 @@ public class TitleScreen : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
+        if (GameManager.Instance.state == GameManager.GameState.Paused) return;
+
         if (GameManager.Instance.isPlaying()) {
             drawHUD();
             return;

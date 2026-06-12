@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
         Title,
         SelectingDifficulty,
         Playing,
+        Paused,
         Won,
         GameOver
     }
@@ -204,6 +205,29 @@ public class GameManager : MonoBehaviour
     public void selectDifficulty()
     {
         state = GameState.SelectingDifficulty;
+    }
+
+    public void pauseGame()
+    {
+        if (state != GameState.Playing) return;
+        state = GameState.Paused;
+        Time.timeScale = 0f;
+    }
+
+    public void resumeGame()
+    {
+        if (state != GameState.Paused) return;
+        state = GameState.Playing;
+        Time.timeScale = 1f;
+    }
+
+    public void returnToMenu()
+    {
+        Time.timeScale = 1f;
+        state = GameState.Title;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
+        );
     }
 
     public bool isPlaying()
