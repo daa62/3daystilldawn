@@ -1,29 +1,64 @@
 using UnityEngine;
 
+// First-person controller with Minecraft Java movement. The velocity is advanced with
+// Minecraft's per-tick math (acceleration, ground/air friction, gravity, the sprint-jump
+// impulse) so speeds match and sprint-jumping/bhopping is faster than plain sprinting —
+// but the character is *moved* every frame by that velocity, so it renders smoothly at any
+// frame rate instead of stepping at 20 Hz. Mouse look is per-frame.
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] Transform cameraHolder;
 
     CharacterController controller;
-    Vector3 velocity;
+
+    // Minecraft motion state, in blocks-per-tick (1 unit = 1 block)
+    Vector3 horizontalMotion;   // world XZ, carried between ticks
+    float verticalMotion;       // world Y
+    Vector3 moveVelocity;       // velocity we actually move by until the next tick
+    float tickTimer;
     float xRotation;
-    float currentSpeed;
-    float jumpTimeoutDelta;
-    float fallTimeoutDelta;
+
+    // input sampled every frame, read on the next tick
+    float inputStrafe;
+    float inputForward;
+    bool inputSprint;
+    bool inputJump;
 
     void Awake()
     {
         controller = GetComponent<CharacterController>();
-        jumpTimeoutDelta = GameManager.PLAYER_JUMP_TIMEOUT;
-        fallTimeoutDelta = GameManager.PLAYER_FALL_TIMEOUT;
+
+        // Minecraft proportions: 1.8 tall, 0.6 wide, eyes at 1.62 (origin at the feet)
+        controller.height = GameManager.PLAYER_HEIGHT;
+        controller.radius = GameManager.PLAYER_RADIUS;
+        controller.center = new Vector3(0f, GameManager.PLAYER_HEIGHT * 0.5f, 0f);
+        if (cameraHolder != null)
+        {
+            Vector3 p = cameraHolder.localPosition;
+            p.y = GameManager.PLAYER_EYE_HEIGHT;
+            cameraHolder.localPosition = p;
+        }
+
         lockCursor(true);
     }
 
     void Update()
     {
         handleLook();
-        handleMove();
+        captureInput();
+
+        // advance the Minecraft velocity in fixed 20 Hz ticks (state only, no movement here)
+        tickTimer += Time.deltaTime;
+        int guard = 0;
+        while (tickTimer >= GameManager.MC_TICK && guard++ < 5)
+        {
+            tickMotion();
+            tickTimer -= GameManager.MC_TICK;
+        }
+
+        // move smoothly every frame using the current velocity (blocks/tick -> this frame)
+        controller.Move(moveVelocity * (Time.deltaTime / GameManager.MC_TICK));
     }
 
     void handleLook()
@@ -33,50 +68,72 @@ public class PlayerController : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * GameManager.PLAYER_LOOK_SENSITIVITY;
         float mouseY = Input.GetAxis("Mouse Y") * GameManager.PLAYER_LOOK_SENSITIVITY;
 
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -GameManager.VERTICAL_CLAMP, GameManager.VERTICAL_CLAMP);
-
+        xRotation = Mathf.Clamp(xRotation - mouseY, -GameManager.VERTICAL_CLAMP, GameManager.VERTICAL_CLAMP);
         cameraHolder.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
     }
 
-    void handleMove()
+    void captureInput()
+    {
+        bool enabled = Cursor.lockState == CursorLockMode.Locked;
+        inputStrafe  = enabled ? Input.GetAxisRaw("Horizontal") : 0f;
+        inputForward = enabled ? Input.GetAxisRaw("Vertical")   : 0f;
+        inputSprint  = enabled && Input.GetKey(KeyCode.LeftShift);
+        // held jump auto-fires on landing, which is how Minecraft bunny-hopping works
+        if (enabled && Input.GetButton("Jump")) inputJump = true;
+    }
+
+    // One Minecraft tick: update the velocity (moveVelocity is what we render-move by).
+    void tickMotion()
     {
         bool grounded = controller.isGrounded;
-        bool inputEnabled = Cursor.lockState == CursorLockMode.Locked;
+        if (grounded && verticalMotion < 0f)
+            verticalMotion = -GameManager.MC_GRAVITY;     // small stick so isGrounded stays stable
 
-        // ground state + jump/fall timeouts (fallTimeout doubles as coyote-time grace)
-        if (grounded) {
-            fallTimeoutDelta = GameManager.PLAYER_FALL_TIMEOUT;
-            if (velocity.y < 0f) velocity.y = -2f;
-            if (jumpTimeoutDelta >= 0f) jumpTimeoutDelta -= Time.deltaTime;
-        } else {
-            jumpTimeoutDelta = GameManager.PLAYER_JUMP_TIMEOUT;
-            if (fallTimeoutDelta >= 0f) fallTimeoutDelta -= Time.deltaTime;
+        bool sprinting = inputSprint && inputForward > 0f; // Minecraft only sprints going forward
+
+        if (grounded && inputJump)
+        {
+            verticalMotion = GameManager.MC_JUMP_VELOCITY;
+            if (sprinting)
+            {
+                Vector3 f = transform.forward;
+                f.y = 0f;
+                horizontalMotion += f.normalized * GameManager.MC_SPRINT_JUMP_BOOST;
+            }
         }
+        inputJump = false;
 
-        // horizontal move with sprint and smoothed acceleration
-        float h = inputEnabled ? Input.GetAxisRaw("Horizontal") : 0f;
-        float v = inputEnabled ? Input.GetAxisRaw("Vertical")   : 0f;
-        Vector3 dir = (transform.right * h + transform.forward * v).normalized;
+        // acceleration in the input direction (diagonals aren't faster)
+        Vector3 wish = transform.right * inputStrafe + transform.forward * inputForward;
+        wish.y = 0f;
+        float wishLen = wish.magnitude;
+        if (wishLen > 0f) wish /= Mathf.Max(1f, wishLen);
+        horizontalMotion += wish * accelForTick(grounded, sprinting);
 
-        bool sprinting = inputEnabled && Input.GetKey(KeyCode.LeftShift);
-        float targetSpeed = sprinting ? GameManager.PLAYER_SPRINT_SPEED : GameManager.PLAYER_MOVE_SPEED;
-        if (dir == Vector3.zero) targetSpeed = 0f;
+        // this pre-friction velocity is what MC moves by; hold it until the next tick
+        moveVelocity = new Vector3(horizontalMotion.x, verticalMotion, horizontalMotion.z);
 
-        currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * GameManager.PLAYER_SPEED_CHANGE_RATE);
-        controller.Move(dir * currentSpeed * Time.deltaTime);
+        // leave friction / drag for the next tick
+        float hFriction = grounded ? GameManager.MC_GROUND_SLIPPERINESS * GameManager.MC_AIR_DRAG
+                                   : GameManager.MC_AIR_DRAG;
+        horizontalMotion.x *= hFriction;
+        horizontalMotion.z *= hFriction;
+        verticalMotion = (verticalMotion - GameManager.MC_GRAVITY) * GameManager.MC_Y_DRAG;
+    }
 
-        // jump: allowed within the coyote window and once the jump cooldown has elapsed
-        bool canJump = (grounded || fallTimeoutDelta > 0f) && jumpTimeoutDelta <= 0f;
-        if (inputEnabled && Input.GetButtonDown("Jump") && canJump) {
-            velocity.y = Mathf.Sqrt(GameManager.PLAYER_JUMP_HEIGHT * -2f * GameManager.PLAYER_GRAVITY);
-            jumpTimeoutDelta = GameManager.PLAYER_JUMP_TIMEOUT;
-            fallTimeoutDelta = 0f;
+    float accelForTick(bool grounded, bool sprinting)
+    {
+        if (grounded)
+        {
+            // normalise by friction so default ground gives the base attribute speed
+            float friction = GameManager.MC_GROUND_SLIPPERINESS * GameManager.MC_AIR_DRAG;
+            float baseAccel = sprinting ? GameManager.MC_WALK_ACCEL * GameManager.MC_SPRINT_MULTIPLIER
+                                        : GameManager.MC_WALK_ACCEL;
+            return baseAccel * (0.16277136f / (friction * friction * friction));
         }
-
-        velocity.y += GameManager.PLAYER_GRAVITY * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        return sprinting ? GameManager.MC_AIR_ACCEL * GameManager.MC_SPRINT_MULTIPLIER
+                         : GameManager.MC_AIR_ACCEL;
     }
 
     public void lockCursor(bool locked)

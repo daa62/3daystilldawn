@@ -9,8 +9,10 @@ public class Zombie : MonoBehaviour
 {
     CharacterController controller;
     Transform target;
+    Health targetHealth;
     Vector3 velocity;
     float chaseMemory;
+    float attackCooldown;
 
     void Awake()
     {
@@ -20,11 +22,17 @@ public class Zombie : MonoBehaviour
     void Start()
     {
         PlayerController player = FindAnyObjectByType<PlayerController>();
-        if (player != null) target = player.transform;
+        if (player != null)
+        {
+            target = player.transform;
+            targetHealth = player.GetComponent<Health>();
+        }
     }
 
     void Update()
     {
+        if (attackCooldown > 0f) attackCooldown -= Time.deltaTime;
+
         if (target != null)
         {
             if (canSeeTarget())
@@ -33,10 +41,26 @@ public class Zombie : MonoBehaviour
                 chaseMemory -= Time.deltaTime;
 
             if (chaseMemory > 0f)
+            {
                 chase();
+                tryAttack();
+            }
         }
 
         applyGravity();
+    }
+
+    // Bite the player whenever it stays within reach, throttled by a cooldown.
+    void tryAttack()
+    {
+        if (targetHealth == null || targetHealth.IsDead || attackCooldown > 0f) return;
+
+        Vector3 flat = target.position - transform.position;
+        flat.y = 0f;
+        if (flat.magnitude > GameManager.ZOMBIE_ATTACK_RANGE) return;
+
+        targetHealth.damage(GameManager.ZOMBIE_ATTACK_DAMAGE);
+        attackCooldown = GameManager.ZOMBIE_ATTACK_COOLDOWN;
     }
 
     bool canSeeTarget()
@@ -47,14 +71,20 @@ public class Zombie : MonoBehaviour
         float   distance    = toTarget.magnitude;
 
         if (distance > GameManager.ZOMBIE_SIGHT_RANGE) return false;
-        if (Vector3.Angle(transform.forward, toTarget) > GameManager.ZOMBIE_FOV * 0.5f) return false;
 
-        // anything solid between us and the player blocks sight
+        // anything solid between us and the player blocks awareness (ignore our own body)
         if (Physics.Raycast(eye, toTarget.normalized, out RaycastHit hit, distance))
         {
-            if (hit.transform != target && !hit.transform.IsChildOf(target)) return false;
+            bool isTarget = hit.transform == target || hit.transform.IsChildOf(target);
+            bool isSelf   = hit.transform == transform || hit.transform.IsChildOf(transform);
+            if (!isTarget && !isSelf) return false;
         }
-        return true;
+
+        // close by: hears/smells the player from any direction, so the view cone doesn't matter
+        if (distance <= GameManager.ZOMBIE_HEARING_RANGE) return true;
+
+        // farther away: must be inside the forward view cone
+        return Vector3.Angle(transform.forward, toTarget) <= GameManager.ZOMBIE_FOV * 0.5f;
     }
 
     void chase()
