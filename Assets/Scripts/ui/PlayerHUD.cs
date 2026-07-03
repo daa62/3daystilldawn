@@ -13,9 +13,13 @@ public class PlayerHUD : MonoBehaviour
     const float BAR_WIDTH  = 320f;
     const float BAR_HEIGHT = 26f;
 
-    static readonly Color BAR_BG   = new Color(0f, 0f, 0f, 0.6f);
-    static readonly Color BAR_FILL = new Color(0.80f, 0.20f, 0.18f, 1f);
-    static readonly Color OVERLAY  = new Color(0.05f, 0f, 0f, 0.85f);
+    const float STAMINA_HEIGHT = 12f;
+
+    static readonly Color BAR_BG        = new Color(0f, 0f, 0f, 0.6f);
+    static readonly Color BAR_FILL      = new Color(0.80f, 0.20f, 0.18f, 1f);
+    static readonly Color STAMINA_FILL  = new Color(0.85f, 0.75f, 0.25f, 1f);   // amber
+    static readonly Color STAMINA_SPENT = new Color(0.55f, 0.30f, 0.20f, 1f);   // dim while exhausted
+    static readonly Color OVERLAY       = new Color(0.05f, 0f, 0f, 0.85f);
 
     RectTransform healthFill;
     TextMeshProUGUI healthLabel;
@@ -23,7 +27,11 @@ public class PlayerHUD : MonoBehaviour
     TextMeshProUGUI dayLabel;
     GameObject deathOverlay;
 
+    RectTransform staminaFill;
+    UnityEngine.UI.Image staminaFillImage;
+
     Health playerHealth;
+    Stamina playerStamina;
 
     void Awake()
     {
@@ -46,6 +54,13 @@ public class PlayerHUD : MonoBehaviour
         {
             Debug.LogWarning("[PlayerHUD] No Health found on the player — health bar will stay full. " +
                              "Run Tools > M2 > Setup Survival.");
+        }
+
+        if (player != null) playerStamina = player.GetComponent<Stamina>();
+        if (playerStamina != null)
+        {
+            playerStamina.onChanged.AddListener(updateStamina);
+            updateStamina(playerStamina.Current, playerStamina.Max);
         }
 
         DayCycle.onChanged += updateDayLabel;
@@ -115,6 +130,17 @@ public class PlayerHUD : MonoBehaviour
         if (healthLabel != null) healthLabel.text = Mathf.CeilToInt(current) + " / " + Mathf.CeilToInt(max);
     }
 
+    void updateStamina(float current, float max)
+    {
+        float ratio = max > 0f ? Mathf.Clamp01(current / max) : 0f;
+        if (staminaFill != null)
+            staminaFill.sizeDelta = new Vector2(BAR_WIDTH * ratio, STAMINA_HEIGHT);
+        // dim the bar while exhausted so the sprint lockout reads at a glance
+        if (staminaFillImage != null)
+            staminaFillImage.color = (playerStamina != null && playerStamina.IsExhausted)
+                ? STAMINA_SPENT : STAMINA_FILL;
+    }
+
     void showDeath()
     {
         var player = FindAnyObjectByType<PlayerController>();
@@ -164,6 +190,19 @@ public class PlayerHUD : MonoBehaviour
         healthLabel = text(barBg.transform, "HealthLabel", "100 / 100", 20, Color.white, TextAlignmentOptions.Center);
         stretch(healthLabel.rectTransform);
 
+        // stamina bar, a slim strip just above the health bar
+        var stamBg = image(root, "StaminaBar", BAR_BG);
+        anchor(stamBg.rectTransform, new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0));
+        stamBg.rectTransform.anchoredPosition = new Vector2(40, 40 + BAR_HEIGHT + 6);
+        stamBg.rectTransform.sizeDelta = new Vector2(BAR_WIDTH, STAMINA_HEIGHT);
+
+        var stamFill = image(stamBg.transform, "Fill", STAMINA_FILL);
+        anchor(stamFill.rectTransform, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(0, 0.5f));
+        stamFill.rectTransform.anchoredPosition = Vector2.zero;
+        stamFill.rectTransform.sizeDelta = new Vector2(BAR_WIDTH, STAMINA_HEIGHT);
+        staminaFill = stamFill.rectTransform;
+        staminaFillImage = stamFill;
+
         // day counter, top-center
         dayLabel = text(root, "DayCounter", "", 28, Color.white, TextAlignmentOptions.Top);
         anchor(dayLabel.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0.5f, 1));
@@ -182,8 +221,8 @@ public class PlayerHUD : MonoBehaviour
         buildDeathOverlay(root);
     }
 
-    // A small "+" reticle with a dark outline behind a bright core, so it stays visible on
-    // both bright and dark backgrounds.
+    // A small round centre dot: a bright core over a slightly larger dark ring, so it
+    // stays visible on both bright and dark backgrounds.
     void buildCrosshair(Transform root)
     {
         var go = new GameObject("Crosshair", typeof(RectTransform));
@@ -192,21 +231,43 @@ public class PlayerHUD : MonoBehaviour
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = Vector2.zero;
 
-        Color outline = new Color(0f, 0f, 0f, 0.65f);
         Color core = new Color(1f, 1f, 1f, 0.9f);
-        crosshairBar(go.transform, new Vector2(26, 6), outline);
-        crosshairBar(go.transform, new Vector2(6, 26), outline);
-        crosshairBar(go.transform, new Vector2(22, 2), core);
-        crosshairBar(go.transform, new Vector2(2, 22), core);
+        crosshairDot(go.transform, 4f, core);      // bright dot
     }
 
-    void crosshairBar(Transform parent, Vector2 size, Color color)
+    // A filled circle of the given diameter, drawn with the generated circle sprite.
+    void crosshairDot(Transform parent, float diameter, Color color)
     {
-        var bar = image(parent, "Bar", color);
-        var rt = bar.rectTransform;
+        var dot = image(parent, "Dot", color);
+        dot.sprite = circleSprite();
+        var rt = dot.rectTransform;
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = Vector2.zero;
-        rt.sizeDelta = size;
+        rt.sizeDelta = new Vector2(diameter, diameter);
+    }
+
+    // A soft-edged white circle texture built once at runtime (tinted per Image.color),
+    // so the HUD needs no imported sprite asset.
+    static Sprite cachedCircle;
+    static Sprite circleSprite()
+    {
+        if (cachedCircle != null) return cachedCircle;
+
+        const int res = 64;
+        var tex = new Texture2D(res, res, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+        float c = (res - 1) * 0.5f;
+        float r = res * 0.5f - 1f;
+        for (int y = 0; y < res; y++)
+            for (int x = 0; x < res; x++)
+            {
+                float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                float a = Mathf.Clamp01(r - d + 0.5f);   // solid inside, 1px anti-aliased edge
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+            }
+        tex.Apply();
+
+        cachedCircle = Sprite.Create(tex, new Rect(0, 0, res, res), new Vector2(0.5f, 0.5f));
+        return cachedCircle;
     }
 
     void buildDeathOverlay(Transform root)

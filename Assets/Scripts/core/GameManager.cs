@@ -21,8 +21,24 @@ public class GameManager : MonoBehaviour
     public const float MC_JUMP_VELOCITY       = 0.42f;   // -> ~1.2522 block apex
     public const float MC_WALK_ACCEL          = 0.1f;
     public const float MC_AIR_ACCEL           = 0.02f;
-    public const float MC_SPRINT_MULTIPLIER   = 1.3f;
+    public const float MC_SPRINT_MULTIPLIER   = 1.6f;
     public const float MC_SPRINT_JUMP_BOOST   = 0.2f;    // forward impulse per sprint-jump
+
+    // --- stamina (drains on sprint + jump; hard-lockout exhaustion) ---
+    public const float STAMINA_MAX               = 100f;
+    public const float STAMINA_SPRINT_DRAIN      = 25f;   // per second sprinting -> ~4s of sprint
+    public const float STAMINA_JUMP_COST         = 15f;   // per jump
+    public const float STAMINA_REGEN             = 18f;   // per second once regen kicks in
+    public const float STAMINA_REGEN_DELAY       = 0.6f;  // seconds after last use before regen starts
+    public const float STAMINA_RECOVER_THRESHOLD = 30f;   // exhausted -> can't sprint until stamina climbs back to this
+
+    // --- camera feel (CameraEffects) ---
+    public const float SPRINT_FOV_KICK   = 6f;    // degrees added to base FOV while sprinting
+    public const float FOV_LERP_SPEED    = 8f;     // how fast FOV eases toward its target
+    public const float HEADBOB_FREQUENCY = 3.1f;   // bob cycles scale with speed * this
+    public const float HEADBOB_AMPLITUDE = 0.06f; // vertical bob height at walking speed (metres)
+    public const float HEADBOB_SPRINT_MULT = 1.5f; // amplitude/pace boost at full sprint speed
+    public const float HEADBOB_MIN_SPEED = 0.5f;   // below this speed (units/s) the bob rests
 
     // gravity for simple non-player entities (zombie / npc), continuous m/s^2
     public const float PLAYER_GRAVITY = -32f;

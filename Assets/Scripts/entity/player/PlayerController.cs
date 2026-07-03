@@ -1,16 +1,13 @@
 using UnityEngine;
 
-// First-person controller with Minecraft Java movement: velocity is stepped with Minecraft's
-// per-tick math (friction, gravity, sprint-jump impulse) so bhopping beats plain sprinting,
-// but the controller is moved every frame so it stays smooth at any frame rate.
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] Transform cameraHolder;
 
     CharacterController controller;
+    Stamina stamina;   // optional — movement works without it
 
-    // Minecraft motion state, in blocks-per-tick (1 unit = 1 block)
     Vector3 horizontalMotion;   // world XZ, carried between ticks
     float verticalMotion;       // world Y
     Vector3 moveVelocity;       // velocity we actually move by until the next tick
@@ -23,11 +20,18 @@ public class PlayerController : MonoBehaviour
     bool inputSprint;
     bool inputJump;
 
+    // read-only feel state for CameraEffects (FOV kick / head bob)
+    public bool IsSprinting { get; private set; }
+    public bool IsGrounded => controller != null && controller.isGrounded;
+    // current horizontal speed in units/second (moveVelocity is blocks-per-tick)
+    public float HorizontalSpeed =>
+        new Vector2(moveVelocity.x, moveVelocity.z).magnitude / GameManager.MC_TICK;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+        stamina    = GetComponent<Stamina>();
 
-        // Minecraft proportions: 1.8 tall, 0.6 wide, eyes at 1.62 (origin at the feet)
         controller.height = GameManager.PLAYER_HEIGHT;
         controller.radius = GameManager.PLAYER_RADIUS;
         controller.center = new Vector3(0f, GameManager.PLAYER_HEIGHT * 0.5f, 0f);
@@ -46,7 +50,6 @@ public class PlayerController : MonoBehaviour
         handleLook();
         captureInput();
 
-        // advance the Minecraft velocity in fixed 20 Hz ticks (state only, no movement here)
         tickTimer += Time.deltaTime;
         int guard = 0;
         while (tickTimer >= GameManager.MC_TICK && guard++ < 5)
@@ -77,27 +80,33 @@ public class PlayerController : MonoBehaviour
         inputStrafe  = enabled ? Input.GetAxisRaw("Horizontal") : 0f;
         inputForward = enabled ? Input.GetAxisRaw("Vertical")   : 0f;
         inputSprint  = enabled && Input.GetKey(KeyCode.LeftShift);
-        // held jump auto-fires on landing, which is how Minecraft bunny-hopping works
         if (enabled && Input.GetButton("Jump")) inputJump = true;
     }
 
-    // One Minecraft tick: update the velocity (moveVelocity is what we render-move by).
     void tickMotion()
     {
         bool grounded = controller.isGrounded;
         if (grounded && verticalMotion < 0f)
             verticalMotion = -GameManager.MC_GRAVITY;     // small stick so isGrounded stays stable
 
-        bool sprinting = inputSprint && inputForward > 0f; // Minecraft only sprints going forward
+        bool sprinting = inputSprint && inputForward > 0f
+                         && (stamina == null || stamina.CanSprint);
+        IsSprinting = sprinting;
+        stamina?.setSprinting(sprinting);
 
         if (grounded && inputJump)
         {
-            verticalMotion = GameManager.MC_JUMP_VELOCITY;
-            if (sprinting)
+            // a jump only fires if stamina can pay for it (no cost when there's no Stamina)
+            bool canJump = stamina == null || stamina.spendJump();
+            if (canJump)
             {
-                Vector3 f = transform.forward;
-                f.y = 0f;
-                horizontalMotion += f.normalized * GameManager.MC_SPRINT_JUMP_BOOST;
+                verticalMotion = GameManager.MC_JUMP_VELOCITY;
+                if (sprinting)
+                {
+                    Vector3 f = transform.forward;
+                    f.y = 0f;
+                    horizontalMotion += f.normalized * GameManager.MC_SPRINT_JUMP_BOOST;
+                }
             }
         }
         inputJump = false;
