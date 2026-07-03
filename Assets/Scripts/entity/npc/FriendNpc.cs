@@ -43,7 +43,12 @@ public class FriendNpc : MonoBehaviour, IInteractable
         int day = DayCycle.CurrentDay;
         string talkedFlag = GameManager.MORNING_TALKED_PREFIX + day;
 
-        if (state != null && !state.getFlag(GameManager.FLAG_FRIEND_MET)) {
+        // The opening scene belongs to day 1 only, and is marked as seen the moment it
+        // starts — abandoning it partway (or skipping day 1's chat entirely) must not
+        // replay it on a later morning.
+        if (state != null && day == 1 && !state.getFlag(GameManager.FLAG_FRIEND_MET)) {
+            state.setFlag(GameManager.FLAG_FRIEND_MET);
+            state.setFlag(talkedFlag);   // re-talking today lands on the no-more line
             day1Intro(dialogue, state);
             return;
         }
@@ -144,8 +149,6 @@ public class FriendNpc : MonoBehaviour, IInteractable
                                     reply2 = "…Okay. Together. I trust you.";
                                 }
 
-                                state?.setFlag(GameManager.FLAG_FRIEND_MET);
-                                state?.setFlag(GameManager.MORNING_TALKED_PREFIX + 1);
                                 dialogue.show(friendName, reply2, () => dialogue.close());
                             }));
                 }));
