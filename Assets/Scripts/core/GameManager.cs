@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
     public const string SCENE_ENDING    = "Ending";
 
     // daylight timer (see spec: 5-minute scavenging budget, tuned against store size)
-    public const float DAYLIGHT_SECONDS      = 10f;
+    public const float DAYLIGHT_SECONDS      = 300f;
     public const int   NIGHT_EXTRA_ZOMBIES   = 4;    // spawned when the timer runs out
     public const int   ZOMBIES_PER_EXTRA_DAY = 2;    // day escalation: +2 on day 2, +4 on day 3
     public const int   BOND_PER_EARLY_MINUTE = 2;    // early-return bond bump per full minute left
