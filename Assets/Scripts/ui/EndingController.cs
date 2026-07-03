@@ -35,14 +35,20 @@ public class EndingController : MonoBehaviour
 
         if (health < GameManager.HEALTH_LINE)
             return ("SHE TURNS",
-                "You did everything you could think of, but her body lost the race. On the third dawn the thing wearing Mia's face doesn't know your name.");
+                "Her body can't fight the infection any longer. Sometime before dawn, Mia leaves the safe room. " +
+                "You follow the trail she left behind — and find her already fully transformed. " +
+                "The rescue team arrives in time to save you. For Mia, they have no choice.");
 
         if (bond < GameManager.BOND_LINE)
             return ("SHE SLIPS AWAY",
-                "Her fever broke. It wasn't enough. Somewhere in those three days she stopped believing anyone was coming back for her — the safe room is empty, the door left open.");
+                "Her body holds on, but she has lost the will to keep fighting. Afraid of what she'll do to you if she turns, " +
+                "Mia quietly leaves the safe room during the night. You follow the trail she left behind — " +
+                "and find her already fully transformed. The rescue team arrives in time to save you. For Mia, they have no choice.");
 
         return ("BOTH SAVED",
-            "Restrained, burning, furious — and still herself. When the fever finally breaks, Mia is holding your hand. You both made it to the third dawn.");
+            "Mia holds onto her health and her sense of self long enough for the rescue team to arrive. " +
+            "She is lifted out alongside you — and the team reveals a cure has been developed for survivors " +
+            "who haven't yet completely turned. You both made it to the third dawn.");
     }
 
     void build()

@@ -37417,7 +37417,6 @@ MonoBehaviour:
   body: "Dark streaks smear across the tile, dragging toward the storeroom. Something
     heavy was pulled through here \u2014 recently."
   discoverFlag: saw_blood_trail
-  revealObjective: 
   removeAfterReading: 0
 --- !u!23 &1039708391
 MeshRenderer:
@@ -64333,7 +64332,6 @@ MonoBehaviour:
     behind the counter. If Mia's fever is climbing, that's your first stop. Move
     quiet \u2014 noise brings them."
   discoverFlag: read_note_pharmacy
-  revealObjective: Find 3 supplies for Mia
   removeAfterReading: 0
 --- !u!23 &1715122749
 MeshRenderer:

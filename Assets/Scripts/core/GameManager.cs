@@ -77,6 +77,8 @@ public class GameManager : MonoBehaviour
     public const string FLAG_FRIEND_RESTING = "friend_resting";
     public const string FLAG_REASSURED      = "reassured_friend";
     public const string FLAG_DIED           = "player_died";
+    public const string FLAG_CARED_OVERNIGHT = "cared_overnight";      // fed/medicated last night; drives the next morning's scene
+    public const string MORNING_TALKED_PREFIX = "morning_talked_day";  // + day number; first morning visit plays the full scene
     public const string COUNTER_BOND          = "friend_bond";
     public const string COUNTER_FRIEND_HEALTH = "friend_health";
     public const string COUNTER_LAST_RUN_BOND = "last_run_bond";   // banked on today's early return

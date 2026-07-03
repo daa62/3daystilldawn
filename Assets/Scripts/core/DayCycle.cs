@@ -46,6 +46,9 @@ public static class DayCycle
         state.clearFlag(GameManager.FLAG_REASSURED);
         state.clearFlag(GameManager.FLAG_DIED);
         state.clearFlag(GameManager.FLAG_NIGHT_FELL);
+        state.clearFlag(GameManager.FLAG_CARED_OVERNIGHT);
+        for (int day = 1; day <= GameManager.TOTAL_DAYS; day++)
+            state.clearFlag(GameManager.MORNING_TALKED_PREFIX + day);
     }
 
     // Player heads out the safe-room door to scavenge.
@@ -59,6 +62,8 @@ public static class DayCycle
     public static void endRun()
     {
         CurrentPhase = Phase.Night;
+        // whether tonight counts as "cared for" is decided by tonight's actions
+        GameState.Instance?.clearFlag(GameManager.FLAG_CARED_OVERNIGHT);
         onChanged?.Invoke();
     }
 

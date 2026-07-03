@@ -129,7 +129,7 @@ public class DialogueUI : MonoBehaviour
         panel = bg.gameObject;
         UiFactory.anchor(bg.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0));
         bg.rectTransform.anchoredPosition = new Vector2(0, 40);
-        bg.rectTransform.sizeDelta = new Vector2(1500, 320);
+        bg.rectTransform.sizeDelta = new Vector2(1500, 400);
 
         speakerLabel = UiFactory.text(panel.transform, "Speaker", "", 30,
                                       new Color(0.85f, 0.5f, 0.3f, 1f), TextAlignmentOptions.TopLeft);
@@ -141,7 +141,7 @@ public class DialogueUI : MonoBehaviour
         bodyLabel = UiFactory.text(panel.transform, "Body", "", 30, Color.white, TextAlignmentOptions.TopLeft);
         UiFactory.anchor(bodyLabel.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1));
         bodyLabel.rectTransform.anchoredPosition = new Vector2(40, -80);
-        bodyLabel.rectTransform.sizeDelta = new Vector2(1420, 150);
+        bodyLabel.rectTransform.sizeDelta = new Vector2(1420, 100);
 
         continueButton = UiFactory.button(panel.transform, "Continue", "Continue  [Space]", 26f);
         UiFactory.anchor(continueButton.image.rectTransform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0));
@@ -149,26 +149,36 @@ public class DialogueUI : MonoBehaviour
         continueButton.image.rectTransform.sizeDelta = new Vector2(320, 60);
         continueButton.onClick.AddListener(continueClicked);
 
+        // choices stack themselves: the layout group spaces the buttons, the fitter
+        // grows the container upward from the panel's bottom edge to fit however
+        // many there are — no per-button position math anywhere
         var areaGO = new GameObject("Choices", typeof(RectTransform));
         areaGO.transform.SetParent(panel.transform, false);
         choiceArea = areaGO.GetComponent<RectTransform>();
-        UiFactory.anchor(choiceArea, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0.5f, 0));
+        UiFactory.anchor(choiceArea, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0));
         choiceArea.anchoredPosition = new Vector2(0, 24);
-        choiceArea.sizeDelta = new Vector2(-80, 0);
+        choiceArea.sizeDelta = new Vector2(1000, 0);
+
+        var layout = areaGO.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 6f;
+        layout.childAlignment = TextAnchor.LowerCenter;
+        layout.childControlWidth = false;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+
+        var fitter = areaGO.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
     }
 
     void buildChoices(string[] labels)
     {
         clearChoices();
-        const float height = 60f, gap = 10f;
         for (int i = 0; i < labels.Length; i++)
         {
             int index = i;
-            var btn = UiFactory.button(choiceArea, "Choice" + i, labels[i], 26f);
-            var rt = btn.image.rectTransform;
-            UiFactory.anchor(rt, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0));
-            rt.sizeDelta = new Vector2(1300, height);
-            rt.anchoredPosition = new Vector2(0, (labels.Length - 1 - i) * (height + gap));
+            var btn = UiFactory.button(choiceArea, "Choice" + i, labels[i], 20f);
+            btn.image.rectTransform.sizeDelta = new Vector2(1000, 42);
             btn.onClick.AddListener(() => choiceClicked(index));
             choiceButtons.Add(btn.gameObject);
         }
@@ -177,7 +187,13 @@ public class DialogueUI : MonoBehaviour
     void clearChoices()
     {
         foreach (var go in choiceButtons)
-            if (go != null) Destroy(go);
+        {
+            if (go == null) continue;
+            // Destroy() is deferred to end of frame; deactivate first so the layout
+            // group doesn't count the dead buttons when the next menu builds
+            go.SetActive(false);
+            Destroy(go);
+        }
         choiceButtons.Clear();
     }
 }
