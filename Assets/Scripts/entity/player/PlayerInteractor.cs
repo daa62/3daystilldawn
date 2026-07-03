@@ -20,9 +20,16 @@ public class PlayerInteractor : MonoBehaviour
 
     void Update()
     {
+        // while the dialogue window owns input, hide the world prompt ("[E] Talk to Mia")
+        // and don't scan — the E press belongs to the conversation, not the NPC behind it.
+        if (dialogueSwallowsInput()) {
+            setTarget(null);
+            return;
+        }
+
         scanForInteractable();
 
-        if (currentTarget != null && Input.GetKeyDown(KeyCode.E) && !dialogueSwallowsInput()) {
+        if (currentTarget != null && Input.GetKeyDown(KeyCode.E)) {
             currentTarget.interact(this);
         }
     }

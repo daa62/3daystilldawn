@@ -71,6 +71,27 @@ public class PlayerHUD : MonoBehaviour
     {
         if (dayLabel != null)
             dayLabel.text = $"Day {DayCycle.CurrentDay} of {GameManager.TOTAL_DAYS} — {DayCycle.CurrentPhase}";
+
+        // the objective follows the phase of the loop, so it refreshes on the same signal
+        refreshObjective();
+    }
+
+    // Current objective, driven by the day/night phase (spec: the player must always be
+    // able to read what to do next). No explicit call site sets this otherwise.
+    void refreshObjective()
+    {
+        switch (DayCycle.CurrentPhase)
+        {
+            case DayCycle.Phase.Morning:
+                setObjective("Head out through the door to scavenge the store");
+                break;
+            case DayCycle.Phase.Scavenging:
+                setObjective("Find food, medicine, or comfort — return before nightfall");
+                break;
+            case DayCycle.Phase.Night:
+                setObjective("Care for Mia, then rest until morning");
+                break;
+        }
     }
 
     // ---- reactions ----
