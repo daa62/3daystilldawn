@@ -22,7 +22,7 @@ public class ItemData : ScriptableObject
 
     // Self-use from the inventory: food restores the player's stamina capacity,
     // medicine mends max HP (both live in PlayerCondition, so they persist across
-    // scenes). Comfort and tool items have no self-use — they're for Mia / later.
+    // scenes). Comfort and tool items have no self-use — they're for Samuel / later.
     public virtual bool use(GameObject user)
     {
         switch (type)

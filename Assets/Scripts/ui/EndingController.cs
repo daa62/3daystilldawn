@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 
 // Builds the ending screen from the run's accumulated GameState, so the outcome is a
-// consequence of prior play (supplies gathered, the bond with Mia, whether the player
+// consequence of prior play (supplies gathered, the bond with Samuel, whether the player
 // survived) rather than a single final choice. Lives in the Ending scene.
 public class EndingController : MonoBehaviour
 {
@@ -25,7 +25,7 @@ public class EndingController : MonoBehaviour
         if (s.getFlag(GameManager.FLAG_DIED))
             return ("YOU DIED",
                 s.getFlag(GameManager.FLAG_FRIEND_MET)
-                    ? "The dark swallowed you before the third dawn. Somewhere in the mart, Mia waits for a friend who will never come back."
+                    ? "The dark swallowed you before the third dawn. Somewhere in the mart, Samuel waits for a friend who will never come back."
                     : "The horde caught you alone in the aisles. No one was left to remember your name.");
 
         // The spec's ordered check: health gates first — a failing body turns no matter
@@ -34,20 +34,20 @@ public class EndingController : MonoBehaviour
         int bond   = s.getCounter(GameManager.COUNTER_BOND);
 
         if (health < GameManager.HEALTH_LINE)
-            return ("SHE TURNS",
-                "Her body can't fight the infection any longer. Sometime before dawn, Mia leaves the safe room. " +
-                "You follow the trail she left behind — and find her already fully transformed. " +
-                "The rescue team arrives in time to save you. For Mia, they have no choice.");
+            return ("HE TURNS",
+                "His body can't fight the infection any longer. Sometime before dawn, Samuel leaves the safe room. " +
+                "You follow the trail he left behind — and find him already fully transformed. " +
+                "The rescue team arrives in time to save you. For Samuel, they have no choice.");
 
         if (bond < GameManager.BOND_LINE)
-            return ("SHE SLIPS AWAY",
-                "Her body holds on, but she has lost the will to keep fighting. Afraid of what she'll do to you if she turns, " +
-                "Mia quietly leaves the safe room during the night. You follow the trail she left behind — " +
-                "and find her already fully transformed. The rescue team arrives in time to save you. For Mia, they have no choice.");
+            return ("HE SLIPS AWAY",
+                "His body holds on, but he has lost the will to keep fighting. Afraid of what he'll do to you if he turns, " +
+                "Samuel quietly leaves the safe room during the night. You follow the trail he left behind — " +
+                "and find him already fully transformed. The rescue team arrives in time to save you. For Samuel, they have no choice.");
 
         return ("BOTH SAVED",
-            "Mia holds onto her health and her sense of self long enough for the rescue team to arrive. " +
-            "She is lifted out alongside you — and the team reveals a cure has been developed for survivors " +
+            "Samuel holds onto his health and his sense of self long enough for the rescue team to arrive. " +
+            "He is lifted out alongside you — and the team reveals a cure has been developed for survivors " +
             "who haven't yet completely turned. You both made it to the third dawn.");
     }
 

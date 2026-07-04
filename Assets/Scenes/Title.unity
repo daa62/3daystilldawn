@@ -587,9 +587,9 @@ MonoBehaviour:
   m_text: "WASD  \u2014  Move\nMouse  \u2014  Look\nLeft Shift  \u2014  Sprint\nSpace 
     \u2014  Jump\nE  \u2014  Interact / Pick up\nTab  \u2014  Toggle inventory\n\nEach
     morning, head out the safe room door to scavenge before nightfall.\nFood and
-    medicine keep Mia's body fighting; time together and the right\nkeepsakes keep
-    her spirit fighting. You will not have daylight for everything.\n\nSpend the
-    evening with her, then rest. Rescue comes after the third night."
+    medicine keep Samuel's body fighting; time together and the right\nkeepsakes keep
+    his spirit fighting. You will not have daylight for everything.\n\nSpend the
+    evening with him, then rest. Rescue comes after the third night."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // The player's stranded friend. Interactable ([E]). Narrative dialogue comes first:
-// each morning has a scripted scene (day 2/3 varying on whether she was cared for the
+// each morning has a scripted scene (day 2/3 varying on whether he was cared for the
 // night before), each night opens with a scripted early/late-return line — and only
 // after the narrative beat does the night action menu (talk / give items / rest)
 // appear. Lines in (parentheses) are stage directions and show without a speaker.
 // Put this on the NPC (same object as Npc), layer Interactable.
 public class FriendNpc : MonoBehaviour, IInteractable
 {
-    [SerializeField] string friendName = "Mia";
+    [SerializeField] string friendName = "Samuel";
 
     bool talkedTonight;   // the +bond (and the long story) for talking applies once per night
 
@@ -69,32 +69,32 @@ public class FriendNpc : MonoBehaviour, IInteractable
         if (day == 2) {
             return cared
                 ? new[] {
-                    "(Mia has already wrapped her leg with cleaner bandages. She still looks tired, but she's sitting upright.)",
+                    "(Samuel has already wrapped his leg with cleaner bandages. He still looks tired, but he's sitting upright.)",
                     "Morning.",
                     "My leg's still awful... but I think the swelling's gone down a bit.",
-                    "(She forces a smile.)",
+                    "(He forces a smile.)",
                     "Maybe I'll be able to join you tomorrow." }
                 : new[] {
-                    "(Mia is sitting where she slept. Her breathing is shallow and her bandages are stained. She doesn't notice you right away.)",
+                    "(Samuel is sitting where he slept. His breathing is shallow and his bandages are stained. He doesn't notice you right away.)",
                     "...Morning.",
-                    "(She tries standing, but immediately sits back down.)",
+                    "(He tries standing, but immediately sits back down.)",
                     "...I'm sorry, I'm still useless today." };
         }
 
         // day 3
         return cared
             ? new[] {
-                "(Mia looks exhausted. She keeps rubbing her arms despite the room being warm.)",
+                "(Samuel looks exhausted. He keeps rubbing his arms despite the room being warm.)",
                 "Weird…",
                 "Huh? Oh, it's nothing. I'm just tired today.",
-                "(She laughs quietly.)",
+                "(He laughs quietly.)",
                 "At least I can still complain." }
             : new[] {
-                "(Mia barely lifts her head. She takes several seconds before answering.)",
+                "(Samuel barely lifts his head. He takes several seconds before answering.)",
                 "...You're leaving already?",
-                "(She seems confused then realizes the time.)",
+                "(He seems confused then realizes the time.)",
                 "Oh.",
-                "(She closes her eyes again.)" };
+                "(He closes his eyes again.)" };
     }
 
     string[] morningNoMore(int day)
@@ -102,14 +102,14 @@ public class FriendNpc : MonoBehaviour, IInteractable
         switch (day) {
             case 1: return new[] { "Thank you. I'm relying on you. It's okay if you come back early though… I'd like that." };
             case 2: return new[] { "Be careful out there." };
-            default: return new[] { "…", "(Mia seems to be resting again, better not disturb her.)" };
+            default: return new[] { "…", "(Samuel seems to be resting again, better not disturb him.)" };
         }
     }
 
     // Day 1 opening scene: two choice points that set the tone of the relationship.
     void day1Intro(DialogueUI dialogue, GameState state)
     {
-        dialogue.show("", "(Mia is sitting against the wall, one hand pressed against her injured leg. She tries to smile when she notices you.)", () =>
+        dialogue.show("", "(Samuel is sitting against the wall, one hand pressed against his injured leg. He tries to smile when he notices you.)", () =>
             dialogue.showChoice(friendName,
                 "Do you really think help will come for us?",
                 new[]
@@ -190,7 +190,7 @@ public class FriendNpc : MonoBehaviour, IInteractable
         actions.Add(() => talkTonight(dialogue, state, inventory));
 
         if (hasGivableItem(inventory)) {
-            labels.Add("Give her something");
+            labels.Add("Give him something");
             actions.Add(() => giveMenu(dialogue, state, inventory));
         }
 
@@ -238,12 +238,12 @@ public class FriendNpc : MonoBehaviour, IInteractable
                 case ItemType.Medicine:
                     actions.Add(() => giveItem(dialogue, state, inventory, captured,
                         GameManager.FRIEND_HEALTH_MEDICINE, 0,
-                        "(She swallows the meds without a word. Her breathing evens out, just slightly.)"));
+                        "(He swallows the meds without a word. His breathing evens out, just slightly.)"));
                     break;
                 default:   // Comfort
                     actions.Add(() => giveItem(dialogue, state, inventory, captured,
                         0, GameManager.BOND_COMFORT_ITEM,
-                        $"(She stares at the {captured.itemName} for a long moment. \"You remembered,\" she says, and something in her settles.)"));
+                        $"(He stares at the {captured.itemName} for a long moment. \"You remembered,\" he says, and something in him settles.)"));
                     break;
             }
         }
@@ -251,16 +251,16 @@ public class FriendNpc : MonoBehaviour, IInteractable
         labels.Add("Never mind.");
         actions.Add(() => nightMenu(dialogue, state, inventory));
 
-        dialogue.showChoice(friendName, "What do you want to give her?",
+        dialogue.showChoice(friendName, "What do you want to give him?",
                             labels.ToArray(), pick => actions[pick]());
     }
 
     string foodResponse(int day)
     {
         switch (day) {
-            case 1: return "(She hesitates before taking it, then eats with small bites.)";
-            case 2: return "(She eats slowly, like she has to remember how.)";
-            default: return "(She forces herself to take a few bites before quietly setting the can aside.)";
+            case 1: return "(He hesitates before taking it, then eats with small bites.)";
+            case 2: return "(He eats slowly, like he has to remember how.)";
+            default: return "(He forces himself to take a few bites before quietly setting the can aside.)";
         }
     }
 
@@ -279,7 +279,7 @@ public class FriendNpc : MonoBehaviour, IInteractable
     {
         if (talkedTonight) {
             // the long story only plays once a night
-            dialogue.show("", "(She smiles faintly, but seems too tired to keep talking.)",
+            dialogue.show("", "(He smiles faintly, but seems too tired to keep talking.)",
                           () => nightMenu(dialogue, state, inventory));
             return;
         }
@@ -304,10 +304,10 @@ public class FriendNpc : MonoBehaviour, IInteractable
                 "It's still crowded now–just a lot more dead." };
             default: return new[] {
                 "...There's something I should've told you.",
-                "(She slowly pulls back the bandage around her leg, revealing a rotting bite wound.)",
+                "(He slowly pulls back the bandage around his leg, revealing a rotting bite wound.)",
                 "I wasn't hurt when we were running.",
                 "…I was bitten.",
-                "(She takes a long, shaky breath.)",
+                "(He takes a long, shaky breath.)",
                 "I wanted to believe... if I didn't say it out loud... maybe it wasn't real.",
                 "…I'm sorry." };
         }

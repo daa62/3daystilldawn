@@ -50,3 +50,8 @@ crashlytics-build.properties
 .idea/
 .vs/
 .vscode/
+
+# Unity crash-recovery scene backups (auto-created after a crash; never commit)
+# Listed after the *.meta un-ignore above so the folder's meta is ignored too.
+/[Aa]ssets/_[Rr]ecovery/
+/[Aa]ssets/_[Rr]ecovery.meta

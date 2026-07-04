@@ -64,7 +64,7 @@ public class PlayerHUD : MonoBehaviour
         }
 
         DayCycle.onChanged += updateDayLabel;
-        // the morning objective flips once Mia has been talked to, which is a flag change
+        // the morning objective flips once Samuel has been talked to, which is a flag change
         GameState.Instance?.onFlagChanged.AddListener(onFlagChanged);
         updateDayLabel();
     }
@@ -110,13 +110,13 @@ public class PlayerHUD : MonoBehaviour
                     GameState.Instance.getFlag(GameManager.MORNING_TALKED_PREFIX + DayCycle.CurrentDay);
                 setObjective(talkedToMia
                     ? "Head out through the door to scavenge the store"
-                    : "Check in with Mia");
+                    : "Check in with Samuel");
                 break;
             case DayCycle.Phase.Scavenging:
                 setObjective("Find food, medicine, or comfort — return before nightfall");
                 break;
             case DayCycle.Phase.Night:
-                setObjective("Care for Mia, then rest until morning");
+                setObjective("Care for Samuel, then rest until morning");
                 break;
         }
     }

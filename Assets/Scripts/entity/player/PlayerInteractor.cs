@@ -20,7 +20,7 @@ public class PlayerInteractor : MonoBehaviour
 
     void Update()
     {
-        // while the dialogue window owns input, hide the world prompt ("[E] Talk to Mia")
+        // while the dialogue window owns input, hide the world prompt ("[E] Talk to Samuel")
         // and don't scan — the E press belongs to the conversation, not the NPC behind it.
         if (dialogueSwallowsInput()) {
             setTarget(null);
