@@ -1,10 +1,7 @@
 using UnityEngine;
 
-// First-person camera feel: a field-of-view kick while sprinting and a gentle head
-// bob that scales with movement speed. Reads state off PlayerController rather than
-// touching movement, and lives on the Camera itself (child of the controller's
-// cameraHolder) so bobbing the local position stacks under the look pitch without
-// fighting it. Purely cosmetic — safe to remove.
+// FOV kick while sprinting + head bob. Lives on the Camera itself so the bob
+// stacks under the look pitch without fighting it. Cosmetic only.
 [RequireComponent(typeof(Camera))]
 public class CameraEffects : MonoBehaviour
 {
@@ -47,7 +44,6 @@ public class CameraEffects : MonoBehaviour
         Vector3 offset = Vector3.zero;
         if (moving)
         {
-            // pace and depth grow with speed; sprint pushes both a little further
             float sprintLerp = player.IsSprinting ? GameManager.HEADBOB_SPRINT_MULT : 1f;
             float amplitude  = GameManager.HEADBOB_AMPLITUDE * sprintLerp;
 
@@ -57,8 +53,7 @@ public class CameraEffects : MonoBehaviour
         }
         else
         {
-            // settle smoothly and reset the cycle so the next step starts from neutral
-            bobPhase = 0f;
+            bobPhase = 0f;   // next step starts from neutral
         }
 
         Vector3 goal = basePosition + offset;

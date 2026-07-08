@@ -1,9 +1,7 @@
 using UnityEngine;
 
-// A door the player interacts with to move between the safe room and the store.
-// Loads the target scene and tells the matching SpawnPoint there to position the
-// player, so the same script works in both directions (one door per scene, each
-// pointing at the other). Needs a collider on the Interactable layer.
+// Door between the safe room and the store. Works in both directions — each
+// scene's door points at the other. Needs a collider on the Interactable layer.
 public class TransitionDoor : MonoBehaviour, IInteractable
 {
     [SerializeField] string targetScene = GameManager.SCENE_MAIN;
@@ -22,14 +20,13 @@ public class TransitionDoor : MonoBehaviour, IInteractable
             DayCycle.startRun();
         }
 
+        Sfx.play(Sfx.DOOR);
         SpawnPoint.nextSpawnId = targetSpawnId;
         SceneLoader.load(targetScene);
     }
 
-    // Record how early this return is (spec: time remaining converts to a bond bump).
-    // Only recorded here — the bond itself banks when the player actually spends the
-    // evening: FriendNpc applies it on "Rest until morning". Each return overwrites
-    // the record, so the day's LAST return is what counts; nightfall forfeits it.
+    // Only records the early-return bump — FriendNpc banks it on "Rest until morning".
+    // Each return overwrites the record, so the day's last return is what counts.
     void recordEarlyReturn()
     {
         GameState state = GameState.Instance;

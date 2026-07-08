@@ -1,11 +1,7 @@
 using UnityEngine;
 
-// Basic zombie enemy. Stands idle until the player enters its view cone (range +
-// angle + unobstructed line of sight), then chases. Also listens on the Noise bus:
-// a sound within its radius sends the zombie shambling to the noise point to
-// investigate (sight/chase always takes priority). No navmesh: it walks straight
-// toward its goal and slides along walls via the CharacterController. Keeps
-// chasing for a short memory window after losing sight.
+// Chases the player on sight, investigates noises otherwise. No navmesh — walks
+// straight at its goal and slides along walls via the CharacterController.
 [RequireComponent(typeof(CharacterController))]
 public class Zombie : MonoBehaviour
 {
@@ -25,11 +21,15 @@ public class Zombie : MonoBehaviour
     Vector3 noisePosition;
     float lingerTimer;
 
+    bool wasChasing;
+    float groanTimer;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
         animator   = GetComponentInChildren<Animator>();
         lastPosition = transform.position;
+        groanTimer = Random.Range(2f, 12f);   // desync the pack's first groans
     }
 
     void OnEnable()
@@ -39,7 +39,7 @@ public class Zombie : MonoBehaviour
 
     void OnDisable()
     {
-        Noise.onNoise -= onNoise;   // static event — never leave a destroyed listener behind
+        Noise.onNoise -= onNoise;   // static event — must unsubscribe
     }
 
     void Start()
@@ -65,24 +65,25 @@ public class Zombie : MonoBehaviour
 
             if (chaseMemory > 0f)
             {
+                if (!wasChasing) Sfx.playAt(Sfx.ZOMBIE_ALERT, transform.position);
+                wasChasing = true;
                 chase();
                 tryAttack();
             }
             else
             {
+                wasChasing = false;
                 investigate();
             }
         }
 
+        updateGroan();
         applyGravity();
         updateAnimator();
     }
 
-    // Feed the state machine the zombie's real horizontal speed (so Idle/Walk/Chase
-    // pick themselves from the same thresholds the AI moves at), lightly damped so
-    // transitions don't flicker at the boundaries. Speed is measured from actual
-    // frame displacement — controller.velocity only reflects the LAST Move() call,
-    // and the trailing gravity Move zeroes its horizontal part every frame.
+    // animator speed comes from frame displacement — controller.velocity only sees
+    // the last Move() call, and the gravity Move zeroes its horizontal part
     Vector3 lastPosition;
 
     void updateAnimator()
@@ -97,8 +98,7 @@ public class Zombie : MonoBehaviour
         animator.SetFloat(SpeedParam, speed, 0.1f, Time.deltaTime);
     }
 
-    // A sound reached us if we're inside its carry radius. The newest audible noise
-    // wins; an active chase is never interrupted (checked in Update's priority).
+    // newest audible noise wins; an active chase still takes priority in Update
     void onNoise(Vector3 position, float radius)
     {
         if ((position - transform.position).sqrMagnitude > radius * radius) return;
@@ -108,7 +108,6 @@ public class Zombie : MonoBehaviour
         lingerTimer = GameManager.ZOMBIE_INVESTIGATE_LINGER;
     }
 
-    // Shamble to the last heard noise, look around briefly, then go back to idling.
     void investigate()
     {
         if (!hasNoise) return;
@@ -126,7 +125,6 @@ public class Zombie : MonoBehaviour
         if (lingerTimer <= 0f) hasNoise = false;
     }
 
-    // Bite the player whenever it stays within reach, throttled by a cooldown.
     void tryAttack()
     {
         if (targetHealth == null || targetHealth.IsDead || attackCooldown > 0f) return;
@@ -139,6 +137,18 @@ public class Zombie : MonoBehaviour
         PlayerCondition.wound(GameManager.ZOMBIE_WOUND_MAX_HP);   // bites leave lasting damage
         attackCooldown = GameManager.ZOMBIE_ATTACK_COOLDOWN;
         animator?.SetTrigger(AttackParam);
+        Sfx.playAt(Sfx.ZOMBIE_BITE, transform.position);
+        Sfx.play(Sfx.PLAYER_HURT, 0.8f);
+    }
+
+    // ambient groans on a loose random timer, a bit more often while chasing
+    void updateGroan()
+    {
+        groanTimer -= Time.deltaTime;
+        if (groanTimer > 0f) return;
+
+        groanTimer = wasChasing ? Random.Range(2f, 5f) : Random.Range(5f, 12f);
+        Sfx.playAt(Sfx.ZOMBIE_GROAN, transform.position, 0.7f);
     }
 
     bool canSeeTarget()
@@ -150,7 +160,7 @@ public class Zombie : MonoBehaviour
 
         if (distance > GameManager.ZOMBIE_SIGHT_RANGE) return false;
 
-        // anything solid between us and the player blocks awareness (ignore our own body)
+        // walls block awareness (ignore our own body)
         if (Physics.Raycast(eye, toTarget.normalized, out RaycastHit hit, distance))
         {
             bool isTarget = hit.transform == target || hit.transform.IsChildOf(target);
@@ -158,10 +168,8 @@ public class Zombie : MonoBehaviour
             if (!isTarget && !isSelf) return false;
         }
 
-        // close by: hears/smells the player from any direction, so the view cone doesn't matter
+        // close enough to hear from any direction, otherwise needs the view cone
         if (distance <= GameManager.ZOMBIE_HEARING_RANGE) return true;
-
-        // farther away: must be inside the forward view cone
         return Vector3.Angle(transform.forward, toTarget) <= GameManager.ZOMBIE_FOV * 0.5f;
     }
 
@@ -170,7 +178,6 @@ public class Zombie : MonoBehaviour
         moveToward(target.position, GameManager.ZOMBIE_MOVE_SPEED);
     }
 
-    // Straight-line steering shared by chasing and investigating.
     void moveToward(Vector3 point, float speed)
     {
         Vector3 direction = point - transform.position;

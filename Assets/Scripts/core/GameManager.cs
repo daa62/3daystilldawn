@@ -11,8 +11,7 @@ public class GameManager : MonoBehaviour
     public const float VERTICAL_CLAMP          = 89.9f;
 
     // --- Minecraft Java movement, simulated at 20 TPS (1 unit = 1 block) ---
-    // Emergent result: sprint-jumping (bhop) is faster than plain sprinting because the
-    // jump adds a forward impulse and air drag (0.91) is weaker than ground friction (0.546).
+    // sprint-jumping ends up faster than plain sprinting, same as in mc
     public const float MC_TICK                = 0.05f;   // 20 ticks per second
     public const float MC_GROUND_SLIPPERINESS = 0.6f;    // default block
     public const float MC_AIR_DRAG            = 0.91f;
@@ -89,13 +88,13 @@ public class GameManager : MonoBehaviour
     public const string SCENE_SAFE_ROOM = "SafeRoom";
     public const string SCENE_ENDING    = "Ending";
 
-    // daylight timer (see spec: 5-minute scavenging budget, tuned against store size)
+    // daylight timer: 5-minute scavenging budget
     public const float DAYLIGHT_SECONDS      = 300f;
     public const int   NIGHT_EXTRA_ZOMBIES   = 4;    // spawned when the timer runs out
     public const int   ZOMBIES_PER_EXTRA_DAY = 2;    // day escalation: +2 on day 2, +4 on day 3
     public const int   BOND_PER_EARLY_MINUTE = 2;    // early-return bond bump per full minute left
 
-    // day cycle + friend variables — spec starter numbers, all tunable here
+    // day cycle + friend tuning
     public const int TOTAL_DAYS          = 3;
     public const int FRIEND_HEALTH_START = 70;   // already bitten
     public const int FRIEND_BOND_START   = 20;   // the secret is creating distance
@@ -105,12 +104,12 @@ public class GameManager : MonoBehaviour
     public const int BOND_TALK_AT_NIGHT  = 5;
     public const int FRIEND_STAT_MAX     = 100;  // both axes live on a hidden 0-100 scale
 
-    // night actions (spec: food ~+15 health, meds ~+20, comfort item ~+15 bond)
+    // night actions
     public const int FRIEND_HEALTH_FOOD     = 15;
     public const int FRIEND_HEALTH_MEDICINE = 20;
     public const int BOND_COMFORT_ITEM      = 15;
 
-    // narrative state keys (GameState flags/counters) — shared by dialogue, objectives, endings
+    // GameState flag/counter keys, shared by dialogue, objectives, endings
     public const string FLAG_NIGHT_FELL     = "night_fell";
     public const string FLAG_FRIEND_MET     = "friend_met";
     public const string FLAG_FRIEND_RESTING = "friend_resting";

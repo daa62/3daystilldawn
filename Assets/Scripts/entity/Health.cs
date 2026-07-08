@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// Reusable hit-point container for any damageable entity (player, friend NPC, ...).
-// Fires events so UI and game-over logic can react without knowing about each other.
+// Hit points for anything damageable; fires events for the HUD / death logic.
 public class Health : MonoBehaviour
 {
     [SerializeField] float maxHealth = 100f;
@@ -20,8 +19,7 @@ public class Health : MonoBehaviour
         Current = maxHealth;
     }
 
-    // Change the ceiling (lasting wounds / treatment). Current is clamped into the
-    // new range; listeners get the change through the usual event.
+    // lasting wounds / treatment change the ceiling
     public void setMax(float newMax)
     {
         maxHealth = Mathf.Max(1f, newMax);

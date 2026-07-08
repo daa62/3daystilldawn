@@ -1,9 +1,6 @@
 using UnityEngine;
 
-// Emits footstep noise while the player moves on the ground — the first sound
-// source on the Noise bus. Three tiers: sprinting is loud, walking is quiet,
-// crouching (and standing still) is silent — so speed trades off directly against
-// attention. Reads state off PlayerController like CameraEffects does.
+// Footstep noise: sprinting is loud, walking is quiet, crouching is silent.
 [RequireComponent(typeof(PlayerController))]
 public class PlayerNoise : MonoBehaviour
 {
@@ -26,11 +23,11 @@ public class PlayerNoise : MonoBehaviour
         footstepTimer -= Time.deltaTime;
         if (footstepTimer <= 0f) {
             Noise.emit(transform.position, radius);
+            Sfx.playAt(Sfx.STEP, transform.position, player.IsSprinting ? 0.9f : 0.45f);
             footstepTimer = GameManager.NOISE_FOOTSTEP_INTERVAL;
         }
     }
 
-    // How far the current footsteps carry: sprint loud, walk quiet, crouch silent.
     float footstepRadius()
     {
         bool moving = player.IsGrounded && player.HorizontalSpeed > GameManager.HEADBOB_MIN_SPEED;

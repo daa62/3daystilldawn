@@ -89,8 +89,8 @@ public class PlayerController : MonoBehaviour
         health?.heal(GameManager.PLAYER_HEALTH_REGEN * Time.deltaTime);
     }
 
-    // Ease the eye down while crouched and back up on release. Only the holder's
-    // height moves — pitch (holder rotation) and head bob (camera child) are untouched.
+    // ease the eye down while crouched; only the holder's height moves,
+    // pitch and head bob live elsewhere
     void updateCrouchCamera()
     {
         if (cameraHolder == null) return;
@@ -140,7 +140,6 @@ public class PlayerController : MonoBehaviour
 
         if (grounded && inputJump)
         {
-            // a jump only fires if stamina can pay for it (no cost when there's no Stamina)
             bool canJump = stamina == null || stamina.spendJump();
             if (canJump)
             {
@@ -164,10 +163,9 @@ public class PlayerController : MonoBehaviour
         if (crouching) accel *= GameManager.MC_CROUCH_MULTIPLIER;
         horizontalMotion += wish * accel;
 
-        // this pre-friction velocity is what MC moves by; hold it until the next tick
+        // mc moves by the pre-friction velocity; friction lands on the next tick
         moveVelocity = new Vector3(horizontalMotion.x, verticalMotion, horizontalMotion.z);
 
-        // leave friction / drag for the next tick
         float hFriction = grounded ? GameManager.MC_GROUND_SLIPPERINESS * GameManager.MC_AIR_DRAG
                                    : GameManager.MC_AIR_DRAG;
         horizontalMotion.x *= hFriction;

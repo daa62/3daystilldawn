@@ -32,6 +32,7 @@ public class InventoryUI : MonoBehaviour
 
     void toggle()
     {
+        Sfx.play(Sfx.UI_CLICK, 0.5f);
         bool open = !panelRoot.activeSelf;
         panelRoot.SetActive(open);
         playerController.lockCursor(!open);

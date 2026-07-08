@@ -10,6 +10,7 @@ public class WorldItem : MonoBehaviour, IInteractable
     public void interact(PlayerInteractor interactor)
     {
         if (interactor.getInventory().addItem(itemData)) {
+            Sfx.play(Sfx.PICKUP);
             Destroy(gameObject);
         } else {
             Debug.Log("Inventory full!");

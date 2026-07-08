@@ -1,11 +1,8 @@
 using System;
 using UnityEngine;
 
-// The spine of the gameplay loop (spec: two scenes, one timer, three days).
-// Tracks which day it is and which phase the player is in; everything else
-// (night check-in, friend decay, the ending) hangs off these transitions.
-// Static so it survives scene loads without any scene wiring — same pattern
-// as Inventory's carried list. Reset from the title screen on a new game.
+// Tracks which day it is and which phase the player is in.
+// Static so it survives scene loads; reset from the title screen on a new game.
 public static class DayCycle
 {
     public enum Phase { Morning, Scavenging, Night }
@@ -15,12 +12,10 @@ public static class DayCycle
 
     public static event Action onChanged;
 
-    // The title scene has no GameState object, so a reset made there can't seed the
-    // counters yet; GameState.Awake collects the seed when the first gameplay scene loads.
+    // the title scene has no GameState, so a reset there can't seed counters yet;
+    // GameState.Awake picks the seed up when the first gameplay scene loads
     static bool seedPending;
 
-
-    // New game: day 1 morning, friend stats at their spec starting points.
     public static void reset()
     {
         CurrentDay = 1;
@@ -42,8 +37,7 @@ public static class DayCycle
         state.setCounter(GameManager.COUNTER_BOND, GameManager.FRIEND_BOND_START);
         state.setCounter(GameManager.COUNTER_LAST_RUN_BOND, 0);
 
-        // narrative flags survive returns to the title screen (GameState is
-        // DontDestroyOnLoad) — a new game must not inherit the previous run's story
+        // GameState survives returning to the title screen, so wipe the old run's story
         state.clearFlag(GameManager.FLAG_FRIEND_MET);
         state.clearFlag(GameManager.FLAG_FRIEND_RESTING);
         state.clearFlag(GameManager.FLAG_REASSURED);
@@ -54,14 +48,14 @@ public static class DayCycle
             state.clearFlag(GameManager.MORNING_TALKED_PREFIX + day);
     }
 
-    // Player heads out the safe-room door to scavenge.
+    // player heads out the safe-room door to scavenge
     public static void startRun()
     {
         CurrentPhase = Phase.Scavenging;
         onChanged?.Invoke();
     }
 
-    // Player comes back through the store door: evening at home.
+    // player comes back through the store door
     public static void endRun()
     {
         CurrentPhase = Phase.Night;
@@ -70,9 +64,8 @@ public static class DayCycle
         onChanged?.Invoke();
     }
 
-    // Night actions are done (currently: talking to the friend). The friend's body
-    // fights the infection overnight — decay applies here so the decline is what the
-    // player wakes up to. After the last night, the ending cascade takes over.
+    // called when the player rests. friend decay applies overnight so the decline
+    // is what the player wakes up to; after the last night, load the ending
     public static void resolveNight()
     {
         var state = GameState.Instance;

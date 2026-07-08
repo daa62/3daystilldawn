@@ -1,8 +1,6 @@
 using UnityEngine;
 
-// Serialized by index in item assets — only append, never reorder.
-// Survival = food/water (friend health at night), Medicine = meds (bigger heal),
-// Comfort = personal items (bond when given at night).
+// serialized by index in item assets — only append, never reorder
 public enum ItemType { Survival, Comfort, Tool, Medicine }
 
 [CreateAssetMenu(fileName = "NewItem", menuName = "3DaysTillDawn/Item")]
@@ -20,9 +18,8 @@ public class ItemData : ScriptableObject
     [Tooltip("If true, the item is removed from the inventory after a successful use")]
     public bool consumable = true;
 
-    // Self-use from the inventory: food restores the player's stamina capacity,
-    // medicine mends max HP (both live in PlayerCondition, so they persist across
-    // scenes). Comfort and tool items have no self-use — they're for Samuel / later.
+    // self-use: food restores stamina capacity, medicine mends max HP.
+    // comfort/tool items have no self-use — they're for Samuel
     public virtual bool use(GameObject user)
     {
         switch (type)

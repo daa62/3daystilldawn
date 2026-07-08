@@ -42,8 +42,7 @@ public class GameState : MonoBehaviour
         if (flags.Remove(key)) onFlagChanged.Invoke(key, false);
     }
 
-    // Numeric progress (relationship/bond, supplies gathered, ...). Kept here so it
-    // survives scene loads and can drive which ending the player reaches.
+    // numeric progress (bond, friend health, ...) — survives scene loads
     public int getCounter(string key) => counters.TryGetValue(key, out int value) ? value : 0;
 
     public void setCounter(string key, int value)

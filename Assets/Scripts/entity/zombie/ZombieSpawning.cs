@@ -1,8 +1,7 @@
 using UnityEngine;
 
-// Shared spawn helper for the systems that add zombies at marked points
-// (night-fall extras, day escalation). If no prefab is assigned, an existing
-// scene zombie is cloned so editor wiring stays optional.
+// Spawn helper shared by the night-fall and day-escalation spawners.
+// With no prefab assigned it clones an existing scene zombie.
 public static class ZombieSpawning
 {
     public static void spawnAt(GameObject prefab, Transform[] points, int count, string context)

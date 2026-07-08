@@ -1,9 +1,7 @@
 using UnityEngine;
 
-// A piece of environmental storytelling the player discovers by exploring: a readable note
-// / text fragment, or an examinable trace ("dried blood leads to the back room"). Interact
-// ([E]) to show the text in the dialogue window; the first read can raise a GameState flag.
-// Put it on the Interactable layer.
+// A readable note or examinable trace. Shows its text in the dialogue window;
+// the first read can raise a GameState flag. Put it on the Interactable layer.
 [RequireComponent(typeof(Collider))]
 public class WorldReadable : MonoBehaviour, IInteractable
 {
@@ -25,6 +23,7 @@ public class WorldReadable : MonoBehaviour, IInteractable
         var state = GameState.Instance;
         bool firstTime = state == null || string.IsNullOrEmpty(discoverFlag) || !state.getFlag(discoverFlag);
 
+        Sfx.play(Sfx.PAPER);
         dialogue.show(title, body, () => dialogue.close());
 
         if (firstTime && state != null && !string.IsNullOrEmpty(discoverFlag))

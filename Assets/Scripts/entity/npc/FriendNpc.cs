@@ -2,17 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-// The player's stranded friend. Interactable ([E]). Narrative dialogue comes first:
-// each morning has a scripted scene (day 2/3 varying on whether he was cared for the
-// night before), each night opens with a scripted early/late-return line — and only
-// after the narrative beat does the night action menu (talk / give items / rest)
-// appear. Lines in (parentheses) are stage directions and show without a speaker.
-// Put this on the NPC (same object as Npc), layer Interactable.
+// The player's stranded friend. Mornings play a scripted scene, nights open with
+// a return line and then the action menu (talk / give items / rest).
+// Lines wrapped in (parentheses) are stage directions and show without a speaker.
 public class FriendNpc : MonoBehaviour, IInteractable
 {
     [SerializeField] string friendName = "Samuel";
 
-    bool talkedTonight;   // the +bond (and the long story) for talking applies once per night
+    bool talkedTonight;   // talk bonus applies once per night
 
     public string getPrompt() => "Talk to " + friendName;
 
@@ -28,7 +25,6 @@ public class FriendNpc : MonoBehaviour, IInteractable
             morning(dialogue, state);
     }
 
-    // Plays lines in order; ()-wrapped lines are unspoken stage directions.
     void showSequence(DialogueUI dialogue, string[] lines, int index, Action done)
     {
         if (index >= lines.Length) { done(); return; }
@@ -43,9 +39,8 @@ public class FriendNpc : MonoBehaviour, IInteractable
         int day = DayCycle.CurrentDay;
         string talkedFlag = GameManager.MORNING_TALKED_PREFIX + day;
 
-        // The opening scene belongs to day 1 only, and is marked as seen the moment it
-        // starts — abandoning it partway (or skipping day 1's chat entirely) must not
-        // replay it on a later morning.
+        // the intro is marked seen the moment it starts, so abandoning it partway
+        // can't replay it on a later morning
         if (state != null && day == 1 && !state.getFlag(GameManager.FLAG_FRIEND_MET)) {
             state.setFlag(GameManager.FLAG_FRIEND_MET);
             state.setFlag(talkedFlag);   // re-talking today lands on the no-more line
@@ -106,7 +101,7 @@ public class FriendNpc : MonoBehaviour, IInteractable
         }
     }
 
-    // Day 1 opening scene: two choice points that set the tone of the relationship.
+    // day 1 opening: two choice points that set the tone of the relationship
     void day1Intro(DialogueUI dialogue, GameState state)
     {
         dialogue.show("", "(Samuel is sitting against the wall, one hand pressed against his injured leg. He tries to smile when he notices you.)", () =>
@@ -156,9 +151,8 @@ public class FriendNpc : MonoBehaviour, IInteractable
 
     // ---------------------------------------------------------------- nights
 
-    // talkedTonight is NOT reset here: the player can now leave and restart this
-    // conversation, and the once-a-night talk bonus must not farm. The field resets
-    // naturally each night because returning from the store reloads the scene.
+    // talkedTonight is not reset here — reopening the conversation must not farm the
+    // talk bonus. It resets anyway each night since returning reloads the scene.
     void nightCheckIn(DialogueUI dialogue, GameState state, Inventory inventory)
     {
         bool early = state != null && state.getCounter(GameManager.COUNTER_LAST_RUN_BOND) > 0;
@@ -215,8 +209,7 @@ public class FriendNpc : MonoBehaviour, IInteractable
         return false;
     }
 
-    // Second page: what to hand over. Every carried givable item gets its own row
-    // (duplicates included — two food cans are two rows), plus a way back.
+    // every carried givable item gets its own row, duplicates included
     void giveMenu(DialogueUI dialogue, GameState state, Inventory inventory)
     {
         var labels  = new List<string>();
@@ -315,8 +308,7 @@ public class FriendNpc : MonoBehaviour, IInteractable
 
     void rest(DialogueUI dialogue, GameState state)
     {
-        // the early-return bond banks now — settling in for the evening is what
-        // actually converts leftover daylight into time together
+        // the early-return bond banks here, when the evening is actually spent together
         if (state != null) {
             int pending = state.getCounter(GameManager.COUNTER_LAST_RUN_BOND);
             if (pending > 0) addClamped(state, GameManager.COUNTER_BOND, pending);

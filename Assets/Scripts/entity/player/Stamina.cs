@@ -1,10 +1,8 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// Sprint/jump stamina for the player. Mirrors Health: a self-contained resource with
-// change events so the HUD can react without coupling. The controller feeds it state
-// (setSprinting / spendJump); it owns its own regen. Hard-lockout exhaustion: once
-// emptied, sprint stays disabled until stamina climbs back past a recovery threshold.
+// Sprint/jump stamina. Once emptied, sprint stays locked out until it climbs
+// back past the recovery threshold.
 public class Stamina : MonoBehaviour
 {
     public float Max { get; private set; } = GameManager.STAMINA_MAX;
@@ -24,7 +22,6 @@ public class Stamina : MonoBehaviour
         Current = Max;
     }
 
-    // Change the capacity (hunger / eating). Current is clamped into the new range.
     public void setMax(float newMax)
     {
         Max = Mathf.Max(1f, newMax);
@@ -42,14 +39,13 @@ public class Stamina : MonoBehaviour
             recover(GameManager.STAMINA_REGEN * Time.deltaTime);
     }
 
-    // Controller tells us whether the player is actively sprinting this frame.
     public void setSprinting(bool value)
     {
         sprinting = value;
         if (value) regenCooldown = GameManager.STAMINA_REGEN_DELAY;
     }
 
-    // Try to pay for a jump. Returns false (and spends nothing) if too low.
+    // returns false (and spends nothing) if too low for a jump
     public bool spendJump()
     {
         if (Current < GameManager.STAMINA_JUMP_COST) return false;

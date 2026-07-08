@@ -1,13 +1,9 @@
 using UnityEngine;
 
-// Marks where the player appears after a scene transition. A TransitionDoor sets
-// nextSpawnId before loading; when the new scene starts, the SpawnPoint with that
-// id moves the player onto itself (facing the spawn point's forward direction).
-// If no id was set (e.g. entering play mode directly), the player stays where the
-// scene placed them.
+// Where the player appears after a scene transition. TransitionDoor sets
+// nextSpawnId before loading; the matching SpawnPoint moves the player onto itself.
 public class SpawnPoint : MonoBehaviour
 {
-    // well-known ids so doors and spawn points agree without magic strings
     public const string SAFE_ROOM_DOOR = "SafeRoomDoor";
     public const string STORE_DOOR     = "StoreDoor";
 
@@ -26,7 +22,7 @@ public class SpawnPoint : MonoBehaviour
             return;
         }
 
-        // CharacterController overrides transform writes while enabled, so toggle it
+        // CharacterController ignores transform writes while enabled, so toggle it
         CharacterController controller = player.GetComponent<CharacterController>();
         if (controller != null) controller.enabled = false;
 

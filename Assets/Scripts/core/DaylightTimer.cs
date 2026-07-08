@@ -1,13 +1,9 @@
 using UnityEngine;
 using TMPro;
 
-// The daylight budget for one in-game day. Lives in the store scene and shows the
-// remaining time top-right (it builds its own canvas, same pattern as PlayerHUD).
-// The clock is continuous per DAY, not per visit: popping home and coming back
-// resumes where it left off (state is static, stamped with the day it belongs to,
-// so a new day — or a new game — starts a fresh budget). When it hits zero, night
-// falls: extra zombies spawn (again on every re-entry that night) and the
-// early-return bond bump is forfeited.
+// Daylight budget for one in-game day, shown top-right in the store scene.
+// The clock is per day, not per visit — leaving and coming back resumes it.
+// At zero, night falls: extra zombies spawn and the early-return bond is forfeit.
 public class DaylightTimer : MonoBehaviour
 {
     public static DaylightTimer Instance { get; private set; }
@@ -18,7 +14,7 @@ public class DaylightTimer : MonoBehaviour
     [Tooltip("Zombie prefab spawned at night. If unset, an existing scene zombie is cloned.")]
     [SerializeField] GameObject zombiePrefab;
 
-    // today's clock, surviving scene reloads; stamped with the day it belongs to
+    // today's clock, static so it survives scene reloads
     static float remainingToday;
     static bool  nightFellToday;
     static int   stampedDay;
@@ -30,7 +26,7 @@ public class DaylightTimer : MonoBehaviour
     public float RemainingSeconds => remaining;
     public bool NightFell => nightFell;
 
-    // New game: forget the previous run's clock (called by DayCycle.reset).
+    // new game: forget the previous run's clock (called by DayCycle.reset)
     public static void resetClock()
     {
         stampedDay = 0;
@@ -61,6 +57,7 @@ public class DaylightTimer : MonoBehaviour
         } else {
             GameState.Instance?.clearFlag(GameManager.FLAG_NIGHT_FELL);
         }
+        Sfx.ambience(nightFell ? Sfx.AMB_STORE_NIGHT : Sfx.AMB_STORE);
         updateLabel();
     }
 
@@ -83,6 +80,8 @@ public class DaylightTimer : MonoBehaviour
         nightFell = true;
         nightFellToday = true;
         GameState.Instance?.setFlag(GameManager.FLAG_NIGHT_FELL);
+        Sfx.play(Sfx.NIGHT_FALL);
+        Sfx.ambience(Sfx.AMB_STORE_NIGHT);
         spawnNightZombies();
     }
 

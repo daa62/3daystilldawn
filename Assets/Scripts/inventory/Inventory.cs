@@ -9,10 +9,8 @@ public class Inventory : MonoBehaviour, IInventory
     readonly List<ItemData> items = new List<ItemData>();
     int usedSlots;
 
-    // What the player is carrying, mirrored across scene loads. The per-scene player
-    // (and this component with it) is destroyed on every door transition, but ItemData
-    // entries are ScriptableObject assets, so a static list keeps them alive; the next
-    // scene's Inventory refills itself from it in Awake.
+    // carried items survive door transitions here; the next scene's Inventory
+    // refills itself from this list in Awake
     static readonly List<ItemData> carried = new List<ItemData>();
 
     public UnityEvent<List<ItemData>> onChanged = new UnityEvent<List<ItemData>>();
@@ -25,7 +23,6 @@ public class Inventory : MonoBehaviour, IInventory
         }
     }
 
-    // Fresh start (new game from the title screen)
     public static void clearCarried() => carried.Clear();
 
     public bool addItem(ItemData item)
@@ -56,7 +53,10 @@ public class Inventory : MonoBehaviour, IInventory
         if (!items.Contains(item)) return false;
 
         bool used = item.use(gameObject);
-        if (used && item.consumable) removeItem(item);
+        if (used) {
+            Sfx.play(Sfx.ITEM_USE);
+            if (item.consumable) removeItem(item);
+        }
         return used;
     }
 
@@ -66,7 +66,6 @@ public class Inventory : MonoBehaviour, IInventory
         carried.AddRange(items);
     }
 
-    // First carried item of a category (e.g. something edible to give the friend)
     public ItemData firstOfType(ItemType type)
     {
         foreach (ItemData item in items)

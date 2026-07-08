@@ -20,8 +20,7 @@ public class PlayerInteractor : MonoBehaviour
 
     void Update()
     {
-        // while the dialogue window owns input, hide the world prompt ("[E] Talk to Samuel")
-        // and don't scan — the E press belongs to the conversation, not the NPC behind it.
+        // while a conversation is open the E press belongs to it, not the world
         if (dialogueSwallowsInput()) {
             setTarget(null);
             return;
@@ -34,8 +33,7 @@ public class PlayerInteractor : MonoBehaviour
         }
     }
 
-    // E also advances dialogue lines: while a conversation is open (or on the very
-    // frame it closed) the press belongs to the dialogue window, not the world.
+    // also true on the frame the dialogue closed, so the dismissing E can't re-trigger
     bool dialogueSwallowsInput()
     {
         var dialogue = DialogueUI.Instance;

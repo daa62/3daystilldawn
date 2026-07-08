@@ -1,12 +1,7 @@
 using UnityEngine;
 
-// Visual half of the day/night cycle: dims the assigned "daylight" lights
-// (skylight shafts, entrance glow, ambient fill) as the DaylightTimer runs down,
-// going dark when night falls — so the store itself tells the time. Each light's
-// authored HDRP intensity is cached as its full-morning value and scaled by a
-// curve factor; nothing is overwritten, so lumen values stay Inspector-owned.
-// Lives in the store scene next to the DaylightTimer. Flashlight, fixtures and
-// the safe room are untouched.
+// Dims the assigned daylight lights as the DaylightTimer runs down, dark at night.
+// Authored intensities are cached as the full-morning values and scaled from there.
 public class DaylightVisuals : MonoBehaviour
 {
     [Tooltip("Lights that represent daylight. Their current intensity = the full-morning look.")]

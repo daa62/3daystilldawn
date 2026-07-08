@@ -3,8 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
-// Small helpers for building uGUI + TextMeshPro elements from code at runtime, so
-// gameplay UI (dialogue, prompts, overlays) doesn't need to be wired in the editor.
+// Helpers for building uGUI/TMP elements from code, so gameplay UI needs no editor wiring.
 public static class UiFactory
 {
     public static void ensureEventSystem()
@@ -64,8 +63,8 @@ public static class UiFactory
         return btn;
     }
 
-    // Adds a dark outline to a TMP label so white text stays readable on bright backgrounds.
-    // Uses fontMaterial (an instance) so it doesn't affect other text sharing the font.
+    // dark outline so white text stays readable on bright surfaces.
+    // fontMaterial is an instance, so other text on the same font is unaffected
     public static void outline(TextMeshProUGUI label, float width = 0.2f)
     {
         if (label == null) return;

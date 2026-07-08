@@ -3,9 +3,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
-// Self-building gameplay HUD: health bar, current-objective line, and a death overlay.
-// It creates its own Canvas in code, so nothing has to be wired in the editor — just
-// have one PlayerHUD in the gameplay scene (Tools > M2 > Setup Survival adds it).
+// Self-building gameplay HUD: health/stamina bars, day counter, objective line,
+// crosshair, death overlay. One per gameplay scene, no editor wiring.
 public class PlayerHUD : MonoBehaviour
 {
     public static PlayerHUD Instance { get; private set; }
@@ -52,8 +51,7 @@ public class PlayerHUD : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[PlayerHUD] No Health found on the player — health bar will stay full. " +
-                             "Run Tools > M2 > Setup Survival.");
+            Debug.LogWarning("[PlayerHUD] No Health found on the player — health bar will stay full.");
         }
 
         if (player != null) playerStamina = player.GetComponent<Stamina>();
@@ -64,14 +62,14 @@ public class PlayerHUD : MonoBehaviour
         }
 
         DayCycle.onChanged += updateDayLabel;
-        // the morning objective flips once Samuel has been talked to, which is a flag change
+        // the morning objective flips once Samuel has been talked to (a flag change)
         GameState.Instance?.onFlagChanged.AddListener(onFlagChanged);
         updateDayLabel();
     }
 
     void OnDestroy()
     {
-        // DayCycle.onChanged is static — a destroyed HUD must let go or it leaks
+        // static event — must unsubscribe
         DayCycle.onChanged -= updateDayLabel;
         GameState.Instance?.onFlagChanged.RemoveListener(onFlagChanged);
     }
@@ -81,34 +79,29 @@ public class PlayerHUD : MonoBehaviour
         if (key.StartsWith(GameManager.MORNING_TALKED_PREFIX)) refreshObjective();
     }
 
-    // ---- public API (used by objectives / quests later) ----
-
     public void setObjective(string text)
     {
         if (objectiveLabel != null)
             objectiveLabel.text = string.IsNullOrEmpty(text) ? "" : "Objective:  " + text;
     }
 
-    // Day counter, top-center ("Day 1 of 3 — Morning")
     void updateDayLabel()
     {
         if (dayLabel != null)
             dayLabel.text = $"Day {DayCycle.CurrentDay} of {GameManager.TOTAL_DAYS} — {DayCycle.CurrentPhase}";
 
-        // the objective follows the phase of the loop, so it refreshes on the same signal
         refreshObjective();
     }
 
-    // Current objective, driven by the day/night phase (spec: the player must always be
-    // able to read what to do next). No explicit call site sets this otherwise.
+    // objective follows the day/night phase so the player always knows what's next
     void refreshObjective()
     {
         switch (DayCycle.CurrentPhase)
         {
             case DayCycle.Phase.Morning:
-                bool talkedToMia = GameState.Instance != null &&
+                bool talked = GameState.Instance != null &&
                     GameState.Instance.getFlag(GameManager.MORNING_TALKED_PREFIX + DayCycle.CurrentDay);
-                setObjective(talkedToMia
+                setObjective(talked
                     ? "Head out through the door to scavenge the store"
                     : "Check in with Samuel");
                 break;
@@ -121,11 +114,8 @@ public class PlayerHUD : MonoBehaviour
         }
     }
 
-    // ---- reactions ----
-
-    // Both bars are drawn against the ABSOLUTE scale (100), not the current max —
-    // lost capacity (wounds, hunger) shows as bar that can never fill: e.g. at 75
-    // capacity the fill tops out at 75% and the last quarter stays empty black.
+    // bars are drawn against the absolute scale (100), not the current max —
+    // lost capacity from wounds/hunger shows as bar that can never fill
     void updateHealth(float current, float max)
     {
         float ratio = Mathf.Clamp01(current / GameManager.PLAYER_MAX_HEALTH);
@@ -155,7 +145,7 @@ public class PlayerHUD : MonoBehaviour
 
         if (GameState.Instance != null) GameState.Instance.setFlag(GameManager.FLAG_DIED);
 
-        // death is a narrative ending — go to the Ending scene if it exists, else show the overlay
+        // death is a narrative ending — Ending scene if it exists, overlay as fallback
         if (Application.CanStreamedLevelBeLoaded(GameManager.SCENE_ENDING))
             SceneLoader.load(GameManager.SCENE_ENDING);
         else if (deathOverlay != null)
@@ -224,8 +214,6 @@ public class PlayerHUD : MonoBehaviour
         buildDeathOverlay(root);
     }
 
-    // A small round centre dot: a bright core over a slightly larger dark ring, so it
-    // stays visible on both bright and dark backgrounds.
     void buildCrosshair(Transform root)
     {
         var go = new GameObject("Crosshair", typeof(RectTransform));
@@ -235,10 +223,9 @@ public class PlayerHUD : MonoBehaviour
         rt.anchoredPosition = Vector2.zero;
 
         Color core = new Color(1f, 1f, 1f, 0.9f);
-        crosshairDot(go.transform, 4f, core);      // bright dot
+        crosshairDot(go.transform, 4f, core);
     }
 
-    // A filled circle of the given diameter, drawn with the generated circle sprite.
     void crosshairDot(Transform parent, float diameter, Color color)
     {
         var dot = image(parent, "Dot", color);
@@ -249,8 +236,7 @@ public class PlayerHUD : MonoBehaviour
         rt.sizeDelta = new Vector2(diameter, diameter);
     }
 
-    // A soft-edged white circle texture built once at runtime (tinted per Image.color),
-    // so the HUD needs no imported sprite asset.
+    // white circle texture built once at runtime, so no imported sprite is needed
     static Sprite cachedCircle;
     static Sprite circleSprite()
     {

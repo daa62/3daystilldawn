@@ -2,9 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// Builds the ending screen from the run's accumulated GameState, so the outcome is a
-// consequence of prior play (supplies gathered, the bond with Samuel, whether the player
-// survived) rather than a single final choice. Lives in the Ending scene.
+// Ending scene: picks the outcome from the run's accumulated GameState.
 public class EndingController : MonoBehaviour
 {
     static readonly Color BG = new Color(0.05f, 0.06f, 0.08f, 1f);
@@ -28,8 +26,7 @@ public class EndingController : MonoBehaviour
                     ? "The dark swallowed you before the third dawn. Somewhere in the mart, Samuel waits for a friend who will never come back."
                     : "The horde caught you alone in the aisles. No one was left to remember your name.");
 
-        // The spec's ordered check: health gates first — a failing body turns no matter
-        // how strong the bond. Only then does the will to hold on decide it.
+        // health gates first, bond only matters if the body held up
         int health = s.getCounter(GameManager.COUNTER_FRIEND_HEALTH);
         int bond   = s.getCounter(GameManager.COUNTER_BOND);
 
@@ -84,9 +81,8 @@ public class EndingController : MonoBehaviour
         });
     }
 
-    // clear the run's narrative state so a new playthrough starts fresh
     void resetRun()
     {
-        DayCycle.reset();   // day counter, friend health/bond, and story flags
+        DayCycle.reset();   // day counter, friend health/bond, story flags
     }
 }

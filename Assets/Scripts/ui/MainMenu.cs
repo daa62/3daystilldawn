@@ -1,7 +1,6 @@
 using UnityEngine;
 
-// Drives navigation for the Title and Intro menu scenes.
-// Button onClick events are wired to these methods (see Editor/MenuSceneBuilder).
+// Navigation for the Title and Intro scenes; buttons are wired to these methods.
 public class MainMenu : MonoBehaviour
 {
     [Tooltip("Instructions overlay shown on the Title scene. Optional on other scenes.")]
@@ -18,28 +17,29 @@ public class MainMenu : MonoBehaviour
         }
     }
 
-    // Title "Start Game": step into the introduction before the main scene.
     public void startGame()
     {
-        Inventory.clearCarried();   // a new game starts empty-handed
-        DayCycle.reset();           // day 1 morning, friend stats at starting values
+        Sfx.play(Sfx.UI_CLICK);
+        Inventory.clearCarried();   // new game starts empty-handed
+        DayCycle.reset();
         SceneLoader.load(GameManager.SCENE_INTRO);
     }
 
-    // Intro "Continue": start the first day in the safe room with the friend.
     public void continueToGame()
     {
+        Sfx.play(Sfx.UI_CLICK);
         SceneLoader.load(GameManager.SCENE_SAFE_ROOM);
     }
 
-    // Any "Back" button that returns to the Title scene.
     public void backToTitle()
     {
+        Sfx.play(Sfx.UI_CLICK);
         SceneLoader.load(GameManager.SCENE_TITLE);
     }
 
     public void showInstructions()
     {
+        Sfx.play(Sfx.UI_CLICK);
         if (instructionsPanel != null) {
             instructionsPanel.SetActive(true);
         }
@@ -47,6 +47,7 @@ public class MainMenu : MonoBehaviour
 
     public void hideInstructions()
     {
+        Sfx.play(Sfx.UI_CLICK);
         if (instructionsPanel != null) {
             instructionsPanel.SetActive(false);
         }

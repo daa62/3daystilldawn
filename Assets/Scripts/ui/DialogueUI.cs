@@ -4,8 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// Self-building dialogue window with a speaker line and either a Continue button or choice
-// buttons; callers drive it via show() / showChoice() and nest calls to chain lines.
+// Self-building dialogue window. Callers chain show() / showChoice() calls.
 // While open the cursor is freed, which also stops player movement.
 public class DialogueUI : MonoBehaviour
 {
@@ -13,13 +12,12 @@ public class DialogueUI : MonoBehaviour
 
     public bool IsOpen { get; private set; }
 
-    // The frame the dialogue last closed. PlayerInteractor checks this so the key
-    // press that dismissed the final line can't re-trigger the NPC the same frame.
+    // PlayerInteractor checks this so the E that dismissed the final line
+    // can't re-trigger the NPC on the same frame
     public int LastClosedFrame { get; private set; } = -1;
 
-    // GetKeyDown stays true for the whole frame, so the E that opened the dialogue
-    // would also "advance" it instantly — single-line conversations would open and
-    // close invisibly. Ignore advance input on the frame a line appears.
+    // likewise, the E that opened the dialogue would instantly advance it
+    // (GetKeyDown stays true all frame) — ignore input on the frame a line appears
     int shownFrame = -1;
 
     static readonly Color PANEL_BG = new Color(0.04f, 0.05f, 0.07f, 0.94f);
@@ -97,6 +95,7 @@ public class DialogueUI : MonoBehaviour
 
     void continueClicked()
     {
+        Sfx.play(Sfx.UI_CLICK, 0.5f);
         Action cb = onContinue;
         onContinue = null;
         if (cb != null) cb();
@@ -105,6 +104,7 @@ public class DialogueUI : MonoBehaviour
 
     void choiceClicked(int index)
     {
+        Sfx.play(Sfx.UI_CLICK, 0.5f);
         Action<int> cb = onChoose;
         onChoose = null;
         clearChoices();
@@ -149,9 +149,7 @@ public class DialogueUI : MonoBehaviour
         continueButton.image.rectTransform.sizeDelta = new Vector2(320, 60);
         continueButton.onClick.AddListener(continueClicked);
 
-        // choices stack themselves: the layout group spaces the buttons, the fitter
-        // grows the container upward from the panel's bottom edge to fit however
-        // many there are — no per-button position math anywhere
+        // layout group + fitter stack the choice buttons, no per-button position math
         var areaGO = new GameObject("Choices", typeof(RectTransform));
         areaGO.transform.SetParent(panel.transform, false);
         choiceArea = areaGO.GetComponent<RectTransform>();
@@ -189,8 +187,8 @@ public class DialogueUI : MonoBehaviour
         foreach (var go in choiceButtons)
         {
             if (go == null) continue;
-            // Destroy() is deferred to end of frame; deactivate first so the layout
-            // group doesn't count the dead buttons when the next menu builds
+            // Destroy() is deferred — deactivate first so the layout group
+            // doesn't count dead buttons when the next menu builds
             go.SetActive(false);
             Destroy(go);
         }
