@@ -86,16 +86,19 @@ public class Zombie : MonoBehaviour
     // the last Move() call, and the gravity Move zeroes its horizontal part
     Vector3 lastPosition;
 
+    // actual horizontal speed this frame (FootIK reads it to know when to plant feet)
+    public float CurrentSpeed { get; private set; }
+
     void updateAnimator()
     {
-        if (animator == null) return;
-
         Vector3 delta = transform.position - lastPosition;
         delta.y = 0f;
         lastPosition = transform.position;
 
-        float speed = Time.deltaTime > 0f ? delta.magnitude / Time.deltaTime : 0f;
-        animator.SetFloat(SpeedParam, speed, 0.1f, Time.deltaTime);
+        CurrentSpeed = Time.deltaTime > 0f ? delta.magnitude / Time.deltaTime : 0f;
+
+        if (animator == null) return;
+        animator.SetFloat(SpeedParam, CurrentSpeed, 0.1f, Time.deltaTime);
     }
 
     // newest audible noise wins; an active chase still takes priority in Update
