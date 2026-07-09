@@ -24,7 +24,8 @@ public class PlayerNoise : MonoBehaviour
         if (footstepTimer <= 0f) {
             Noise.emit(transform.position, radius);
             Sfx.playAt(Sfx.STEP, transform.position, player.IsSprinting ? 0.9f : 0.45f);
-            footstepTimer = GameManager.NOISE_FOOTSTEP_INTERVAL;
+            footstepTimer = player.IsSprinting ? GameManager.NOISE_SPRINT_FOOTSTEP_INTERVAL
+                                               : GameManager.NOISE_FOOTSTEP_INTERVAL;
         }
     }
 

@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour
     // gravity for simple non-player entities (zombie / npc), continuous m/s^2
     public const float PLAYER_GRAVITY = -32f;
 
-    public const float ZOMBIE_MOVE_SPEED   = 2.5f;
+    public const float ZOMBIE_MOVE_SPEED   = 1.5f;
     public const float ZOMBIE_SIGHT_RANGE  = 12f;
     public const float ZOMBIE_FOV          = 110f;  // total view-cone angle in degrees
     public const float ZOMBIE_TURN_SPEED   = 8f;
@@ -60,7 +60,8 @@ public class GameManager : MonoBehaviour
     // noise emission (Noise bus): sprint is loud, walking is quiet, crouching is silent
     public const float NOISE_SPRINT_RADIUS    = 30f;    // how far sprint footsteps carry
     public const float NOISE_WALK_RADIUS      = 8f;     // walking footsteps carry about one aisle
-    public const float NOISE_FOOTSTEP_INTERVAL = 0.4f;  // seconds between footstep noises
+    public const float NOISE_FOOTSTEP_INTERVAL        = 0.4f;   // seconds between footsteps while walking
+    public const float NOISE_SPRINT_FOOTSTEP_INTERVAL = 0.2f;  // faster cadence while sprinting
     public const float ZOMBIE_ATTACK_DAMAGE   = 12f;
     public const float ZOMBIE_ATTACK_RANGE    = 1.8f;
     public const float ZOMBIE_ATTACK_COOLDOWN = 1f;

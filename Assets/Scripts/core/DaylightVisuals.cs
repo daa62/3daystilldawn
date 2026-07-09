@@ -7,10 +7,7 @@ public class DaylightVisuals : MonoBehaviour
     [Tooltip("Lights that represent daylight. Their current intensity = the full-morning look.")]
     [SerializeField] Light[] daylightLights;
 
-    [Tooltip("Brightness factor across the day: time 0 = morning, 1 = nightfall.")]
-    [SerializeField] AnimationCurve intensityOverDay = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
-
-    [Tooltip("Factor once night has fallen (0 = fully dark).")]
+    [Tooltip("Brightness factor once night has fallen (0 = fully dark). The day dims linearly toward this.")]
     [SerializeField] float nightFactor = 0f;
 
     float[] authoredIntensity;
@@ -30,13 +27,10 @@ public class DaylightVisuals : MonoBehaviour
         DaylightTimer timer = DaylightTimer.Instance;
         if (timer == null || daylightLights == null) return;
 
-        float factor;
-        if (timer.NightFell) {
-            factor = nightFactor;
-        } else {
-            float progress = 1f - Mathf.Clamp01(timer.RemainingSeconds / GameManager.DAYLIGHT_SECONDS);
-            factor = intensityOverDay.Evaluate(progress);
-        }
+        // linear dim across the whole day: full brightness in the morning, reaching
+        // nightFactor exactly as the timer hits 0 (NightFell then holds it there)
+        float progress = 1f - Mathf.Clamp01(timer.RemainingSeconds / GameManager.DAYLIGHT_SECONDS);
+        float factor = timer.NightFell ? nightFactor : Mathf.Lerp(1f, nightFactor, progress);
 
         for (int i = 0; i < daylightLights.Length; i++)
             if (daylightLights[i] != null)

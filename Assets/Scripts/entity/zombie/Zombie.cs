@@ -8,6 +8,25 @@ public class Zombie : MonoBehaviour
     static readonly int SpeedParam  = Animator.StringToHash("Speed");
     static readonly int AttackParam = Animator.StringToHash("Attack");
 
+    [Tooltip("Movement speed (units/second) — used for chasing and investigating alike.")]
+    [SerializeField] float moveSpeed = GameManager.ZOMBIE_MOVE_SPEED;
+
+    [Tooltip("Delay from the attack starting to the damage landing (match the bite frame).")]
+    [SerializeField] float attackWindup = 0.4f;
+
+    [Header("Obstacle avoidance")]
+    [Tooltip("How far ahead the zombie probes for walls to steer around.")]
+    [SerializeField] float avoidProbeDistance = 1.6f;
+    [Tooltip("Layers treated as walls/obstacles. Set to your map geometry + props.")]
+    [SerializeField] LayerMask obstacleMask = ~0;
+
+    [Header("Idle wandering")]
+    [Tooltip("How far the zombie strays from its post while idle. 0 = stays put (guard).")]
+    [SerializeField] float wanderRadius = 5f;
+    [Tooltip("Random pause range (seconds) standing still between strolls.")]
+    [SerializeField] float wanderPauseMin = 3f;
+    [SerializeField] float wanderPauseMax = 9f;
+
     CharacterController controller;
     Animator animator;   // on the model child; optional — AI runs fine without one
     Transform target;
@@ -23,6 +42,13 @@ public class Zombie : MonoBehaviour
 
     bool wasChasing;
     float groanTimer;
+
+    // idle wandering
+    Vector3 homePosition;      // the post the zombie loosely patrols around
+    Vector3 wanderTarget;
+    bool hasWanderTarget;
+    float wanderPauseTimer;
+    float wanderGiveUpTimer;
 
     void Awake()
     {
@@ -50,11 +76,15 @@ public class Zombie : MonoBehaviour
             target = player.transform;
             targetHealth = player.GetComponent<Health>();
         }
+
+        homePosition = transform.position;
+        wanderPauseTimer = Random.Range(0f, wanderPauseMax);   // desync the pack's first strolls
     }
 
     void Update()
     {
         if (attackCooldown > 0f) attackCooldown -= Time.deltaTime;
+        tickPendingHit();
 
         if (target != null)
         {
@@ -73,7 +103,8 @@ public class Zombie : MonoBehaviour
             else
             {
                 wasChasing = false;
-                investigate();
+                if (hasNoise) investigate();
+                else wander();
             }
         }
 
@@ -120,7 +151,7 @@ public class Zombie : MonoBehaviour
 
         if (flat.magnitude > 1f)
         {
-            moveToward(noisePosition, GameManager.ZOMBIE_INVESTIGATE_SPEED);
+            moveToward(noisePosition, moveSpeed);
             return;
         }
 
@@ -128,6 +159,46 @@ public class Zombie : MonoBehaviour
         if (lingerTimer <= 0f) hasNoise = false;
     }
 
+    // Idle behaviour: mostly stand, but now and then shuffle to a random spot near the
+    // zombie's post, then pause again. Keeps the store feeling alive without the zombie
+    // straying off its guarded area. Straight-line movement — it slides off walls, and
+    // a give-up timer stops it grinding on an unreachable point.
+    void wander()
+    {
+        if (wanderRadius <= 0f) return;   // this zombie is a stationary guard
+
+        if (wanderPauseTimer > 0f)
+        {
+            wanderPauseTimer -= Time.deltaTime;
+            return;   // standing idle
+        }
+
+        if (!hasWanderTarget)
+        {
+            Vector2 offset = Random.insideUnitCircle * wanderRadius;
+            wanderTarget = homePosition + new Vector3(offset.x, 0f, offset.y);
+            hasWanderTarget = true;
+            wanderGiveUpTimer = wanderRadius / Mathf.Max(0.1f, moveSpeed) + 2f;
+        }
+
+        Vector3 flat = wanderTarget - transform.position;
+        flat.y = 0f;
+        wanderGiveUpTimer -= Time.deltaTime;
+
+        if (flat.magnitude <= 1f || wanderGiveUpTimer <= 0f)
+        {
+            hasWanderTarget = false;
+            wanderPauseTimer = Random.Range(wanderPauseMin, wanderPauseMax);
+            return;
+        }
+
+        moveToward(wanderTarget, moveSpeed);
+    }
+
+    float pendingHitTimer = -1f;   // <0 = no swing in progress
+
+    // Start a swing: play the animation/sound now, but hold the damage until the bite
+    // frame (attackWindup). The cooldown starts now so it can't re-trigger mid-swing.
     void tryAttack()
     {
         if (targetHealth == null || targetHealth.IsDead || attackCooldown > 0f) return;
@@ -136,11 +207,30 @@ public class Zombie : MonoBehaviour
         flat.y = 0f;
         if (flat.magnitude > GameManager.ZOMBIE_ATTACK_RANGE) return;
 
-        targetHealth.damage(GameManager.ZOMBIE_ATTACK_DAMAGE);
-        PlayerCondition.wound(GameManager.ZOMBIE_WOUND_MAX_HP);   // bites leave lasting damage
         attackCooldown = GameManager.ZOMBIE_ATTACK_COOLDOWN;
+        pendingHitTimer = attackWindup;
         animator?.SetTrigger(AttackParam);
         Sfx.playAt(Sfx.ZOMBIE_BITE, transform.position);
+    }
+
+    // The bite lands here, one windup later — and only if the player is still in reach,
+    // so backing off during the swing dodges it.
+    void tickPendingHit()
+    {
+        if (pendingHitTimer < 0f) return;
+
+        pendingHitTimer -= Time.deltaTime;
+        if (pendingHitTimer > 0f) return;
+        pendingHitTimer = -1f;
+
+        if (targetHealth == null || targetHealth.IsDead) return;
+
+        Vector3 flat = target.position - transform.position;
+        flat.y = 0f;
+        if (flat.magnitude > GameManager.ZOMBIE_ATTACK_RANGE) return;
+
+        targetHealth.damage(GameManager.ZOMBIE_ATTACK_DAMAGE);
+        PlayerCondition.wound(GameManager.ZOMBIE_WOUND_MAX_HP);   // bites leave lasting damage
         Sfx.play(Sfx.PLAYER_HURT, 0.8f);
     }
 
@@ -178,7 +268,7 @@ public class Zombie : MonoBehaviour
 
     void chase()
     {
-        moveToward(target.position, GameManager.ZOMBIE_MOVE_SPEED);
+        moveToward(target.position, moveSpeed);
     }
 
     void moveToward(Vector3 point, float speed)
@@ -188,12 +278,50 @@ public class Zombie : MonoBehaviour
         if (direction.sqrMagnitude < 0.0001f) return;
 
         direction.Normalize();
+        direction = avoidObstacles(direction);   // steer around walls instead of grinding
+
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
             Quaternion.LookRotation(direction),
             Time.deltaTime * GameManager.ZOMBIE_TURN_SPEED);
 
         controller.Move(direction * speed * Time.deltaTime);
+    }
+
+    static readonly float[] AvoidAngles = { 25f, 50f, 75f };
+
+    // Whisker avoidance: if a wall is dead ahead, deflect toward the nearest clear
+    // heading so the zombie rounds obstacles rather than shoving into them. The target
+    // itself is never treated as an obstacle (so chasing still closes the gap).
+    Vector3 avoidObstacles(Vector3 desired)
+    {
+        if (!blocked(desired)) return desired;
+
+        foreach (float angle in AvoidAngles)
+            foreach (int side in Sides)
+            {
+                Vector3 candidate = Quaternion.Euler(0f, angle * side, 0f) * desired;
+                if (!blocked(candidate)) return candidate;
+            }
+        return desired;   // boxed in on all sides — nothing to do but push (rare)
+    }
+
+    static readonly int[] Sides = { 1, -1 };
+
+    bool blocked(Vector3 dir)
+    {
+        // start the probe just outside our own capsule so we don't self-hit
+        Vector3 origin = transform.position + Vector3.up * (controller.height * 0.5f)
+                         + dir * (controller.radius + 0.05f);
+        if (!Physics.Raycast(origin, dir, out RaycastHit hit, avoidProbeDistance,
+                             obstacleMask, QueryTriggerInteraction.Ignore))
+            return false;
+
+        // don't avoid the player (or its children) — that's who we're trying to reach
+        if (target != null && (hit.transform == target || hit.transform.IsChildOf(target)))
+            return false;
+
+        return true;
     }
 
     void applyGravity()
