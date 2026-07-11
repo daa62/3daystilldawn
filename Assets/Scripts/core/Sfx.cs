@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Central audio player. Clips are looked up by name from Resources/Audio, so sounds
-// come in by just dropping files there — no clip is wired in any scene. Missing
-// clips are skipped silently, which lets the whole game run before audio exists.
+// Central audio player. Clips load by name from Resources/Audio; missing ones are skipped.
 public class Sfx : MonoBehaviour
 {
     // one-shots (Resources/Audio/<name>.wav or .ogg)
