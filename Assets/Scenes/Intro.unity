@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -176,7 +176,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "The convoy never made it past the mall. A roaming horde hit the parking lot \u2014 the group scattered, and you fled inside with your friend Samuel and a wounded soldier.\n\nBefore he died, the soldier sent out an SOS: help will come in three days.\n\nScavenge the mall by day, but watch the clock \u2014 night is not kind to anyone caught outside the safe room. Return to Samuel each evening. Keep his body strong and his hope alive.\n\nWatch him closely. His body language tells you more than words ever could."
+  m_text: "The convoy never made it past the mall. A roaming horde hit the parking
+    lot \u2014 the group scattered, and you fled inside with your friend Samuel and
+    a wounded soldier.\n\nBefore he died, the soldier sent out an SOS: help will
+    come in three days.\n\nScavenge the mall by day, but watch the clock \u2014 night
+    is not kind to anyone caught outside the safe room. Return to Samuel each evening.
+    Keep his body strong and his hope alive.\n\nWatch him closely. His body language
+    tells you more than words ever could."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -198,7 +204,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -315,15 +321,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: THREE DAYS TILL DAWN
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62c99f1e626a1448ca34467ef8b88708, type: 2}
+  m_sharedMaterial: {fileID: 3789675154308553003, guid: 62c99f1e626a1448ca34467ef8b88708, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 0.85, g: 0.3, b: 0.25, a: 1}
+    rgba: 4280956343
+  m_fontColor: {r: 0.7169812, g: 0.20895374, b: 0.16571736, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -335,7 +341,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -452,8 +458,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Continue
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62c99f1e626a1448ca34467ef8b88708, type: 2}
+  m_sharedMaterial: {fileID: 3789675154308553003, guid: 62c99f1e626a1448ca34467ef8b88708, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -472,7 +478,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -589,8 +595,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Back
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 62c99f1e626a1448ca34467ef8b88708, type: 2}
+  m_sharedMaterial: {fileID: 3789675154308553003, guid: 62c99f1e626a1448ca34467ef8b88708, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -609,7 +615,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -745,7 +751,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -883,7 +889,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.16, g: 0.18, b: 0.22, a: 1}
+  m_Color: {r: 0.2784314, g: 0.2901961, b: 0.3137255, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -958,7 +964,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.06, g: 0.07, b: 0.09, a: 1}
+  m_Color: {r: 0.14026344, g: 0.1509434, b: 0.14342788, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1153,7 +1159,12 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "WASD  \u2014  Move\nMouse  \u2014  Look\nLeft Shift  \u2014  Sprint\nSpace  \u2014  Jump\nE  \u2014  Interact / Pick up\nTab  \u2014  Toggle inventory\n\nEach morning, head out the safe room door to scavenge before nightfall.\nFood and medicine keep Samuel's body fighting; time together and the right\nkeepsakes keep his spirit fighting. You will not have daylight for everything.\n\nSpend the evening with him, then rest. Rescue comes after the third night."
+  m_text: "WASD  \u2014  Move\nMouse  \u2014  Look\nLeft Shift  \u2014  Sprint\nSpace 
+    \u2014  Jump\nE  \u2014  Interact / Pick up\nTab  \u2014  Toggle inventory\n\nEach
+    morning, head out the safe room door to scavenge before nightfall.\nFood and
+    medicine keep Samuel's body fighting; time together and the right\nkeepsakes
+    keep his spirit fighting. You will not have daylight for everything.\n\nSpend
+    the evening with him, then rest. Rescue comes after the third night."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1341,7 +1352,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.16, g: 0.18, b: 0.22, a: 1}
+  m_Color: {r: 0.27460843, g: 0.28707677, b: 0.31132078, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
