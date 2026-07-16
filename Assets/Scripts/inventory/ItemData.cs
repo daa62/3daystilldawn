@@ -12,7 +12,7 @@ public class ItemData : ScriptableObject
     public Sprite   icon;
     public ItemType type;
 
-    [Tooltip("Comfort items occupy 2 slots; survival and tool items occupy 1")]
+    [Tooltip("How many inventory slots this item occupies (default 1)")]
     public int slotSize = 1;
 
     [Tooltip("If true, the item is removed from the inventory after a successful use")]

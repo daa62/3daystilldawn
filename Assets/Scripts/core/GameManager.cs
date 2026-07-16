@@ -72,16 +72,16 @@ public class GameManager : MonoBehaviour
     public const float STAMINA_START_MAX   = 60f;    // starting stamina capacity (x% of the bar)
     public const float PLAYER_HEALTH_REGEN = 1.5f;   // HP per second, up to the current max
     public const float PLAYER_MIN_MAX_HEALTH   = 20f;   // wounds can't take max HP below this
-    public const float ZOMBIE_WOUND_MAX_HP     = 4f;    // lasting max-HP loss per zombie hit
-    public const float STAMINA_MIN_MAX         = 40f;   // hunger can't take stamina capacity below this
-    public const float HUNGER_STAMINA_DECAY    = 20f;   // stamina capacity lost per night
+    public const float ZOMBIE_WOUND_MAX_HP     = 5f;    // lasting max-HP loss per zombie hit
+    public const float STAMINA_MIN_MAX         = 10f;   // hunger can't take stamina capacity below this
+    public const float HUNGER_STAMINA_DECAY    = 40f;   // stamina capacity lost per night
     public const float FOOD_STAMINA_RESTORE    = 25f;   // eating food: stamina capacity back
     public const float MEDICINE_MAX_HP_RESTORE = 25f;   // using meds: max HP back
 
     public const float  INTERACT_RANGE          = 5f;
     public const string INTERACTABLE_LAYER_NAME = "Interactable";
 
-    public const int INVENTORY_MAX_SLOTS = 8;
+    public const int INVENTORY_MAX_SLOTS = 10;
 
     public const string SCENE_TITLE     = "Title";
     public const string SCENE_INTRO     = "Intro";
@@ -97,9 +97,9 @@ public class GameManager : MonoBehaviour
 
     // day cycle + friend tuning
     public const int TOTAL_DAYS          = 3;
-    public const int FRIEND_HEALTH_START = 70;   // already bitten
+    public const int FRIEND_HEALTH_START = 75;   // already bitten
     public const int FRIEND_BOND_START   = 20;   // the secret is creating distance
-    public const int FRIEND_HEALTH_DECAY = 25;   // per night, applied automatically
+    public const int FRIEND_HEALTH_DECAY = 30;   // per night, applied automatically
     public const int HEALTH_LINE         = 40;   // below this at the climax: TURNS
     public const int BOND_LINE           = 50;   // below this (health held): SLIPS_AWAY
     public const int BOND_TALK_AT_NIGHT  = 5;

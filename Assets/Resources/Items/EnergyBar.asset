@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Energy Bar
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7f7421ccd82994f428bf4b1fdf085b1f, type: 3}
   type: 0
   slotSize: 1
   consumable: 1

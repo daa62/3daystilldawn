@@ -22,6 +22,7 @@ public static class DayCycle
         CurrentPhase = Phase.Morning;
         PlayerCondition.reset();     // unhurt and well-fed on a new game
         DaylightTimer.resetClock();  // fresh daylight budget
+        LootState.reset();           // restock the store for a fresh run
         seedPending = true;
         applyPendingSeed();
         onChanged?.Invoke();

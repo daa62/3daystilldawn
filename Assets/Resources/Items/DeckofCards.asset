@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Deck of Cards
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: fd5f89ff63828a54bbdedeb63f5da8c4, type: 3}
   type: 1
   slotSize: 1
-  consumable: 1
+  consumable: 0

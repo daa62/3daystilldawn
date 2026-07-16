@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Antibiotics
   description: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7f676b9bce4e35048a8f2bc007aea885, type: 3}
   type: 3
   slotSize: 1
   consumable: 1
