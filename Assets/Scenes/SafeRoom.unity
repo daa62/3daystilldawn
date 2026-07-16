@@ -796,7 +796,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e86b915b6d893e949b6c77b55dba894c, type: 2}
+  - {fileID: 2100000, guid: b4df3bbcd78278b42b0993ccaad87abc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1812,7 +1812,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e86b915b6d893e949b6c77b55dba894c, type: 2}
+  - {fileID: 2100000, guid: 8668bbe978956b143b74a7ea67a3fadf, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1873,7 +1873,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 756ce4fd1eaa8574f80f042a2acca0a0, type: 3}
       propertyPath: m_LocalScale.z
-      value: 204.05086
+      value: 215.33487
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 756ce4fd1eaa8574f80f042a2acca0a0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1881,7 +1881,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 756ce4fd1eaa8574f80f042a2acca0a0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.0082
+      value: -0.0086
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 756ce4fd1eaa8574f80f042a2acca0a0, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1918,7 +1918,11 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 756ce4fd1eaa8574f80f042a2acca0a0, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 4835078630258379571, guid: 7d763d25813963544be9cb94e7f8fc6e, type: 3}
+      objectReference: {fileID: -6087771358165109452, guid: 3a9ee8a7388a64d069b73d2cd4a42559, type: 3}
+    - target: {fileID: -5754084199372789682, guid: 756ce4fd1eaa8574f80f042a2acca0a0, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 3003218172768913193, guid: 3a9ee8a7388a64d069b73d2cd4a42559, type: 3}
     - target: {fileID: 919132149155446097, guid: 756ce4fd1eaa8574f80f042a2acca0a0, type: 3}
       propertyPath: m_Name
       value: Door_toSafeRoom
