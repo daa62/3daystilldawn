@@ -12,7 +12,6 @@ public class WorldItem : MonoBehaviour, IInteractable
         if (interactor.getInventory().addItem(itemData)) {
             Sfx.play(Sfx.PICKUP);
             PickupFeed.push(itemData.itemName);
-            BonusLoot.roll(interactor.getInventory(), itemData);
             Destroy(gameObject);
         } else {
             PickupFeed.notice("Inventory full");
