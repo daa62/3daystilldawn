@@ -46,7 +46,7 @@ public class InventoryUI : MonoBehaviour
 
         foreach (ItemData item in items) {
             GameObject slot  = Instantiate(slotPrefab, slotContainer);
-            var        icon  = slot.GetComponentInChildren<Image>();
+            var        icon  = findIcon(slot);
             var        label = slot.GetComponentInChildren<TextMeshProUGUI>();
 
             if (icon  && item.icon) icon.sprite = item.icon;
@@ -63,5 +63,17 @@ public class InventoryUI : MonoBehaviour
         if (slotCountText) {
             slotCountText.text = $"{inventory.getUsedSlots()} / {inventory.getMaxSlots()} slots";
         }
+    }
+
+    // the slot's own Image is the background; the item sprite belongs on the "Icon" child.
+    // GetComponentInChildren would grab the root background first, leaving the icon blank white.
+    static Image findIcon(GameObject slot)
+    {
+        Transform iconTf = slot.transform.Find("Icon");
+        if (iconTf && iconTf.TryGetComponent(out Image icon)) return icon;
+
+        foreach (Image img in slot.GetComponentsInChildren<Image>())
+            if (img.transform != slot.transform) return img;   // fallback: first non-background Image
+        return null;
     }
 }

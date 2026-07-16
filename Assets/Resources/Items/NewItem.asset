@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2aaee84dccb0e1641b4feda7ad08e411, type: 3}
-  m_Name: FoodCan
+  m_Name: NewItem
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: Food Can
+  itemName: Ointment
   description: 
-  icon: {fileID: 21300000, guid: 4a7d869b9476cd542b4f021a3432d2d9, type: 3}
-  type: 0
+  icon: {fileID: 0}
+  type: 3
   slotSize: 1
   consumable: 1
