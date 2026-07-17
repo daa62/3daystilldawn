@@ -254,6 +254,9 @@ public class FriendNpc : MonoBehaviour, IInteractable
         switch (item.itemName)
         {
             case "Water Bottle":
+            case "Soda":
+            case "Juice":
+            case "Milk":
                 switch (day) {
                     case 1:  return new[] { "(He drinks carefully, then lets out a quiet breath.)" };
                     case 2:  return new[] { "(He swallows with some effort before lowering the bottle.)" };
@@ -266,6 +269,9 @@ public class FriendNpc : MonoBehaviour, IInteractable
                     default: return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
                 }
             case "Antibiotics":
+            case "Bottle of Pills":
+            case "Pills":
+            case "Medicine":
                 switch (day) {
                     case 1:  return new[] { "(He studies the label for a moment before swallowing one.)" };
                     case 2:  return new[] { "(He shakes out a pill without checking the label and swallows it with difficulty.)" };
@@ -410,13 +416,22 @@ public class FriendNpc : MonoBehaviour, IInteractable
                         "(He taps the lid twice.)",
                         "…Still guessing?" };
                 }
-            default:   // food and any item without bespoke lines
-                if (item.type == ItemType.Medicine)
-                    return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
-                switch (day) {
-                    case 1:  return new[] { "(He hesitates before taking it, then eats with small bites.)" };
-                    case 2:  return new[] { "(He eats slowly, like he has to remember how.)" };
-                    default: return new[] { "(He forces himself to take a few bites before quietly setting the can aside.)" };
+            default:   // anything without bespoke lines falls back by type
+                switch (item.type) {
+                    case ItemType.Medicine:
+                        return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
+                    case ItemType.Comfort:   // e.g. the novel — a keepsake, not a meal
+                        switch (day) {
+                            case 1:  return new[] { $"(He turns the {item.itemName.ToLower()} over in his hands, smiling at some memory it stirs.)" };
+                            case 2:  return new[] { $"(He holds the {item.itemName.ToLower()} for a while, quiet but a little lighter.)" };
+                            default: return new[] { $"(He keeps the {item.itemName.ToLower()} close, resting a hand on it.)", "…Thank you." };
+                        }
+                    default:   // Survival: food
+                        switch (day) {
+                            case 1:  return new[] { "(He hesitates before taking it, then eats with small bites.)" };
+                            case 2:  return new[] { "(He eats slowly, like he has to remember how.)" };
+                            default: return new[] { "(He forces himself to take a few bites before quietly setting the can aside.)" };
+                        }
                 }
         }
     }

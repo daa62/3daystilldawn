@@ -17,9 +17,6 @@ public class FriendAnimator : MonoBehaviour
 
     public enum Condition { Normal = 0, Injured = 1 }
 
-    // upright/normal tier — FriendWander reads this to decide if he's well enough to pace
-    public bool IsHealthy => conditionFromHealth() == Condition.Normal;
-
     Animator animator;   // on the model child; harmless if Samuel has no model yet
     Vector3 lastPosition;
 

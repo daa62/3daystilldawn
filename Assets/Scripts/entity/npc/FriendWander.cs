@@ -1,144 +1,118 @@
 using UnityEngine;
+using UnityEngine.AI;
 
-// Samuel paces the safe room now and then — the Zombie's idle-wander pattern: stroll to
-// a random spot near where he started, pause, repeat. Straight-line movement with whisker
-// avoidance so he rounds furniture instead of shoving into it. He holds still whenever a
-// conversation is open, and the movement drives FriendAnimator's Speed (via displacement),
+// Samuel restlessly paces the safe room. NavMesh-driven: he picks random reachable
+// spots near wherever he currently is and lets the agent path around the furniture —
+// the old raycast whiskers kept steering him into walls. Untethered, so over time he
+// drifts anywhere the baked mesh allows. He holds still whenever a conversation
+// is open, and the agent's movement drives FriendAnimator's Speed (via displacement),
 // so the walk clip plays itself — no extra wiring.
-[RequireComponent(typeof(CharacterController))]
+//
+// Needs a baked NavMesh in the room (NavMeshSurface) and a NavMeshAgent on this object.
+// The CharacterController stays purely as the interaction raycast collider; this script
+// never moves it.
+[RequireComponent(typeof(NavMeshAgent))]
 public class FriendWander : MonoBehaviour
 {
     [Header("Wandering")]
-    [Tooltip("How far he strays from his starting spot. 0 = stays put.")]
-    [SerializeField] float wanderRadius = 3f;
+    [Tooltip("How far each stroll reaches from where he's standing. 0 = stays put.")]
+    [SerializeField] float wanderRadius = 5f;
     [Tooltip("Walk speed (units/second). Tune so the feet don't slide against the walk clip.")]
-    [SerializeField] float moveSpeed = 1f;
-    [SerializeField] float turnSpeed = 6f;
+    [SerializeField] float moveSpeed = 3f;
     [Tooltip("Random pause range (seconds) standing still between strolls.")]
-    [SerializeField] float pauseMin = 4f;
-    [SerializeField] float pauseMax = 12f;
+    [SerializeField] float pauseMin = 1f;
+    [SerializeField] float pauseMax = 5f;
 
-    [Header("Obstacle avoidance")]
-    [Tooltip("How far ahead he probes for walls to steer around.")]
-    [SerializeField] float avoidProbeDistance = 1.2f;
-    [Tooltip("Layers treated as walls/props. Set to the safe-room geometry.")]
-    [SerializeField] LayerMask obstacleMask = ~0;
+    [Header("Debug")]
+    [Tooltip("Log every wander decision to the console and draw the current destination in the Scene view.")]
+    [SerializeField] bool debugWander = false;
 
-    CharacterController controller;
-    FriendAnimator      condition;   // gates wandering on his health tier
-    Vector3 homePosition;
-    Vector3 wanderTarget;
-    bool    hasWanderTarget;
-    float   pauseTimer;
-    float   giveUpTimer;
-    float   verticalVelocity;
+    NavMeshAgent agent;
+    float pauseTimer;
+    float giveUpTimer;
+    bool  strolling;
+    bool  warnedOffMesh;
 
     void Awake()
     {
-        controller = GetComponent<CharacterController>();
-        condition  = GetComponent<FriendAnimator>();
+        agent = GetComponent<NavMeshAgent>();
+        agent.speed = moveSpeed;
     }
 
     void Start()
     {
-        homePosition = transform.position;
-        pauseTimer   = Random.Range(0f, pauseMax);   // don't stroll the instant the scene loads
+        pauseTimer = 5f;   // don't stroll the instant the scene loads
     }
 
     void Update()
     {
+        if (!agent.isOnNavMesh) {
+            // no bake (or he was placed off it) — stay put instead of spamming errors
+            if (!warnedOffMesh) {
+                warnedOffMesh = true;
+                Debug.LogWarning("[FriendWander] Not on a NavMesh — bake a NavMeshSurface in this room.", this);
+            }
+            return;
+        }
+
         // never wander off mid-conversation
         var dialogue = DialogueUI.Instance;
-        if (dialogue == null || !dialogue.IsOpen)
-            wander();
+        bool talking = dialogue != null && dialogue.IsOpen;
+        agent.isStopped = talking;
+        if (talking) {
+            log("blocked: dialogue open");
+            return;
+        }
 
-        applyGravity();
+        wander();
     }
 
     void wander()
     {
-        if (wanderRadius <= 0f) return;   // parked — he stays put
+        if (wanderRadius <= 0f || agent.pathPending) return;
 
-        // too hurt to pace: while he's below the healthy tier he stays where he is,
-        // which reads as him resting/injured (FriendAnimator shows the injured idle)
-        if (condition != null && !condition.IsHealthy)
-        {
-            hasWanderTarget = false;
+        if (strolling) {
+            // a partial path (target on an unreachable patch) never "arrives" — the
+            // give-up timer shrugs and re-rolls instead of freezing at the dead end
+            giveUpTimer -= Time.deltaTime;
+            if (agent.remainingDistance > agent.stoppingDistance && giveUpTimer > 0f)
+                return;   // still walking
+
+            log(giveUpTimer <= 0f ? "gave up on unreachable target" : "arrived");
+            strolling  = false;
+            agent.ResetPath();
+            pauseTimer = Random.Range(pauseMin, pauseMax);   // arrived (or gave up) — stand a moment
             return;
         }
 
-        if (pauseTimer > 0f)
-        {
-            pauseTimer -= Time.deltaTime;
-            return;   // standing idle
+        pauseTimer -= Time.deltaTime;
+        if (pauseTimer > 0f) return;
+
+        // random spot near where he stands, snapped onto the navmesh; if it lands
+        // inside furniture (no mesh within reach), just try again next frame.
+        // sample at mesh height, not at the root — base offset can hold the transform
+        // well above the floor, which would put every candidate out of sampling reach
+        Vector2 offset    = Random.insideUnitCircle * wanderRadius;
+        Vector3 candidate = transform.position + new Vector3(offset.x, -agent.baseOffset, offset.y);
+        if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, 2f, NavMesh.AllAreas)) {
+            strolling   = agent.SetDestination(hit.position);
+            giveUpTimer = wanderRadius / Mathf.Max(0.1f, moveSpeed) + 2f;   // generous walk budget
+            log(strolling ? $"new target {hit.position}" : "SetDestination refused the target");
+        } else {
+            log($"no navmesh within 2m of candidate {candidate}");
         }
-
-        if (!hasWanderTarget)
-        {
-            Vector2 offset = Random.insideUnitCircle * wanderRadius;
-            wanderTarget    = homePosition + new Vector3(offset.x, 0f, offset.y);
-            hasWanderTarget = true;
-            giveUpTimer     = wanderRadius / Mathf.Max(0.1f, moveSpeed) + 2f;
-        }
-
-        Vector3 flat = wanderTarget - transform.position;
-        flat.y = 0f;
-        giveUpTimer -= Time.deltaTime;
-
-        if (flat.magnitude <= 0.5f || giveUpTimer <= 0f)
-        {
-            hasWanderTarget = false;
-            pauseTimer      = Random.Range(pauseMin, pauseMax);
-            return;
-        }
-
-        moveToward(wanderTarget);
     }
 
-    void moveToward(Vector3 point)
+    void log(string message)
     {
-        Vector3 direction = point - transform.position;
-        direction.y = 0f;
-        if (direction.sqrMagnitude < 0.0001f) return;
-
-        direction.Normalize();
-        direction = avoidObstacles(direction);   // steer around walls instead of grinding
-
-        transform.rotation = Quaternion.Slerp(transform.rotation,
-            Quaternion.LookRotation(direction), Time.deltaTime * turnSpeed);
-        controller.Move(direction * moveSpeed * Time.deltaTime);
+        if (debugWander) Debug.Log($"[FriendWander] {message}", this);
     }
 
-    static readonly float[] AvoidAngles = { 25f, 50f, 75f };
-    static readonly int[]   Sides       = { 1, -1 };
-
-    Vector3 avoidObstacles(Vector3 desired)
+    void OnDrawGizmosSelected()
     {
-        if (!blocked(desired)) return desired;
-
-        foreach (float angle in AvoidAngles)
-            foreach (int side in Sides)
-            {
-                Vector3 candidate = Quaternion.Euler(0f, angle * side, 0f) * desired;
-                if (!blocked(candidate)) return candidate;
-            }
-        return desired;   // boxed in — nothing to do but hold
-    }
-
-    bool blocked(Vector3 dir)
-    {
-        // probe just outside our own capsule so we don't self-hit
-        Vector3 origin = transform.position + Vector3.up * (controller.height * 0.5f)
-                         + dir * (controller.radius + 0.05f);
-        return Physics.Raycast(origin, dir, avoidProbeDistance, obstacleMask,
-                               QueryTriggerInteraction.Ignore);
-    }
-
-    void applyGravity()
-    {
-        if (controller.isGrounded && verticalVelocity < 0f)
-            verticalVelocity = -2f;
-        verticalVelocity += GameManager.PLAYER_GRAVITY * Time.deltaTime;
-        controller.Move(Vector3.up * verticalVelocity * Time.deltaTime);
+        if (!debugWander || agent == null || !agent.hasPath) return;
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawSphere(agent.destination, 0.15f);
+        Gizmos.DrawLine(transform.position, agent.destination);
     }
 }
