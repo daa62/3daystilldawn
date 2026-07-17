@@ -189,7 +189,7 @@ public class FriendNpc : MonoBehaviour, IInteractable
         }
 
         labels.Add("Rest until morning.");
-        actions.Add(() => rest(dialogue, state));
+        actions.Add(() => confirmRest(dialogue, state, inventory));
 
         labels.Add("Leave the conversation.");
         actions.Add(() => dialogue.close());
@@ -483,6 +483,25 @@ public class FriendNpc : MonoBehaviour, IInteractable
                 "I wanted to believe... if I didn't say it out loud... maybe it wasn't real.",
                 "…I'm sorry." };
         }
+    }
+
+    // the third night's rest is the point of no return — whatever Samuel has been
+    // given by now is what decides the ending, so make sure the player means it
+    void confirmRest(DialogueUI dialogue, GameState state, Inventory inventory)
+    {
+        if (DayCycle.CurrentDay < GameManager.TOTAL_DAYS) {
+            rest(dialogue, state);
+            return;
+        }
+
+        dialogue.showChoice("",
+            "This is the last night. Once you sleep, whatever you've done for Samuel is all that will count when rescue comes.",
+            new[] { "Rest — see it through.", "Not yet." },
+            pick =>
+            {
+                if (pick == 0) rest(dialogue, state);
+                else nightMenu(dialogue, state, inventory);
+            });
     }
 
     void rest(DialogueUI dialogue, GameState state)
