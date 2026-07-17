@@ -87,6 +87,10 @@ public class DaylightTimer : MonoBehaviour
 
     void spawnNightZombies()
     {
+        // a locked storefront keeps the night horde outside
+        var state = GameState.Instance;
+        if (state != null && state.getFlag(GameManager.FLAG_STORE_LOCKED)) return;
+
         ZombieSpawning.spawnAt(zombiePrefab, nightSpawnPoints,
                                GameManager.NIGHT_EXTRA_ZOMBIES, "DaylightTimer");
     }

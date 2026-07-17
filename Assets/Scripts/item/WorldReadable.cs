@@ -18,7 +18,12 @@ public class WorldReadable : MonoBehaviour, IInteractable
 
     void Start()
     {
-        if (sparkle && !alreadyRead())
+        if (alreadyRead()) {
+            // a pocketed note (or taken key) must not respawn on the daily scene reload
+            if (removeAfterReading) Destroy(gameObject);
+            return;
+        }
+        if (sparkle)
             gameObject.AddComponent<ClueSparkle>();
     }
 
