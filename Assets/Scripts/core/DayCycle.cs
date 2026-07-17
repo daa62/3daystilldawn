@@ -54,6 +54,15 @@ public static class DayCycle
             state.clearFlag(GameManager.MORNING_TALKED_PREFIX + day);
     }
 
+    // demo/debug only: jump the clock to a given morning (see DebugCheats)
+    public static void debugSetDay(int day)
+    {
+        CurrentDay = Mathf.Clamp(day, 1, GameManager.TOTAL_DAYS);
+        CurrentPhase = Phase.Morning;
+        DaylightTimer.resetClock();
+        onChanged?.Invoke();
+    }
+
     // player heads out the safe-room door to scavenge
     public static void startRun()
     {

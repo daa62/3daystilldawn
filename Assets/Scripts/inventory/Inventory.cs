@@ -25,6 +25,14 @@ public class Inventory : MonoBehaviour, IInventory
 
     public static void clearCarried() => carried.Clear();
 
+    // demo/debug only: stock the carried list; the next scene's Inventory picks it up
+    public static void debugSeedCarried(params ItemData[] items)
+    {
+        carried.Clear();
+        foreach (ItemData item in items)
+            if (item != null) carried.Add(item);
+    }
+
     public bool addItem(ItemData item)
     {
         if (usedSlots + item.slotSize > maxSlots) {
