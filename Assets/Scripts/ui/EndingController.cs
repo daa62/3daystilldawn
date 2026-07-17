@@ -14,7 +14,7 @@ public class EndingController : MonoBehaviour
 
         string slide = resolveSlide();
         if (slide != null) {
-            CutscenePlayer.play(new[] { slide }, () =>
+            CutscenePlayer.play(new[] { slide }, new[] { resolveEnding().body }, () =>
             {
                 Sfx.ambience(Sfx.MUSIC_ENDING);
                 build();
@@ -53,20 +53,22 @@ public class EndingController : MonoBehaviour
 
         if (health < GameManager.HEALTH_LINE)
             return ("HE TURNS",
-                "His body can't fight the infection any longer. Sometime before dawn, Samuel leaves the safe room. " +
-                "You follow the trail he left behind — and find him already fully transformed. " +
-                "The rescue team arrives in time to save you. For Samuel, they have no choice.");
+                "Samuel can no longer fight the infection and quietly leaves the safe room. " +
+                "You follow the trail he leaves behind, only to find that he has already fully transformed. " +
+                "The rescue team arrives in time to save you, but is forced to put Samuel down.");
 
         if (bond < GameManager.BOND_LINE)
             return ("HE SLIPS AWAY",
-                "His body holds on, but he has lost the will to keep fighting. Afraid of what he'll do to you if he turns, " +
-                "Samuel quietly leaves the safe room during the night. You follow the trail he left behind — " +
-                "and find him already fully transformed. The rescue team arrives in time to save you. For Samuel, they have no choice.");
+                "Although Samuel's body continues to hold on, he loses the will to keep fighting. " +
+                "Fearing he might hurt you if he turns, he quietly leaves the safe room during the night. " +
+                "You follow the trail he leaves behind, only to find that he has already fully transformed. " +
+                "The rescue team arrives in time to save you, but is forced to put Samuel down.");
 
         return ("BOTH SAVED",
-            "Samuel holds onto his health and his sense of self long enough for the rescue team to arrive. " +
-            "He is lifted out alongside you — and the team reveals a cure has been developed for survivors " +
-            "who haven't yet completely turned. You both made it to the third dawn.");
+            "Samuel holds onto both his health and his sense of self long enough for the rescue team to arrive. " +
+            "You are rescued together before the infection fully takes over. " +
+            "The rescue team reveals that a cure has been developed for survivors who have not yet " +
+            "completely turned, giving Samuel a chance to recover.");
     }
 
     void build()

@@ -29,6 +29,11 @@ public class MainMenu : MonoBehaviour
     {
         Sfx.play(Sfx.UI_CLICK);
         CutscenePlayer.play(new[] { "intro_1", "intro_2", "intro_3" },
+            new[] {
+                "While you and a group of survivors are on the move, you pass through a shopping mall parking lot to avoid a blocked highway.",
+                "A roaming horde attacks and the group is quickly overwhelmed. Forced to scatter, you and your friend, Samuel, flee inside the mall with a wounded soldier.",
+                "Before he dies from a fatal wound, the soldier sends out an SOS and tells you that help will come in three days."
+            },
             () => SceneLoader.load(GameManager.SCENE_SAFE_ROOM));
     }
 
