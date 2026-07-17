@@ -97,7 +97,7 @@ public class GameManager : MonoBehaviour
 
     // day cycle + friend tuning
     public const int TOTAL_DAYS          = 3;
-    public const int FRIEND_HEALTH_START = 75;   // already bitten
+    public const int FRIEND_HEALTH_START = 35;   // already bitten
     public const int FRIEND_BOND_START   = 20;   // the secret is creating distance
     public const int FRIEND_HEALTH_DECAY = 50;   // per night, applied automatically
     public const int HEALTH_LINE         = 40;   // below this at the climax: TURNS
