@@ -119,6 +119,8 @@ public class GameManager : MonoBehaviour
     public const string FLAG_CARED_OVERNIGHT = "cared_overnight";      // fed/medicated last night; drives the next morning's scene
     public const string FLAG_HAS_STORE_KEY   = "has_store_key";        // found the storefront key
     public const string FLAG_STORE_LOCKED    = "store_locked";         // locked the storefront: night spawns stay outside
+    public const string FLAG_HAS_FIRE_AXE    = "has_fire_axe";         // found the fire axe
+    public const string FLAG_PATH_CLEARED    = "path_cleared";         // smashed the blocked pathway open
     public const string MORNING_TALKED_PREFIX = "morning_talked_day";  // + day number; first morning visit plays the full scene
     public const string COUNTER_BOND          = "friend_bond";
     public const string COUNTER_FRIEND_HEALTH = "friend_health";

@@ -18,6 +18,7 @@ public class Sfx : MonoBehaviour
     public const string ZOMBIE_BITE  = "zombie_bite";
     public const string PLAYER_HURT  = "player_hurt";
     public const string NIGHT_FALL   = "night_fall";
+    public const string CRASH        = "crash";
 
     // loops
     public const string AMB_STORE       = "amb_store";

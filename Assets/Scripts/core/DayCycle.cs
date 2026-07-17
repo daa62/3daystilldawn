@@ -47,6 +47,8 @@ public static class DayCycle
         state.clearFlag(GameManager.FLAG_CARED_OVERNIGHT);
         state.clearFlag(GameManager.FLAG_HAS_STORE_KEY);
         state.clearFlag(GameManager.FLAG_STORE_LOCKED);
+        state.clearFlag(GameManager.FLAG_HAS_FIRE_AXE);
+        state.clearFlag(GameManager.FLAG_PATH_CLEARED);
         for (int day = 1; day <= GameManager.TOTAL_DAYS; day++)
             state.clearFlag(GameManager.MORNING_TALKED_PREFIX + day);
     }
