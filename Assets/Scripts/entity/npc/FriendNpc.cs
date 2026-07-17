@@ -515,7 +515,13 @@ public class FriendNpc : MonoBehaviour, IInteractable
             if (DayCycle.CurrentDay >= GameManager.TOTAL_DAYS)
                 DayCycle.resolveNight();                            // final night loads the Ending, which fades on its own
             else
-                SceneTransition.fadeThrough(DayCycle.resolveNight);  // sleep through to morning behind a black fade
+                SceneTransition.fadeThrough(() =>
+                {
+                    // behind the black: the night resolves and the player wakes
+                    // up at their sleeping spot instead of mid-room
+                    DayCycle.resolveNight();
+                    SpawnPoint.movePlayerTo(SpawnPoint.WAKE_UP);
+                });
         });
     }
 
