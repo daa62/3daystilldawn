@@ -19,6 +19,11 @@ public class BlockedPath : MonoBehaviour, IInteractable
     [TextArea(2, 4)]
     [SerializeField] string lockedText =
         "(Shelving and debris, wedged tight. Hands alone won't shift it — something with a heavy blade might.)";
+    [Tooltip("Optional: flag showing the player has learned where the tool is (e.g. read the safety notice). Empty = always use lockedText.")]
+    [SerializeField] string hintFlag = "read_axe_notice";
+    [TextArea(2, 4)]
+    [SerializeField] string hintedLockedText =
+        "(Wedged tight, but an axe would make short work of it. The brown shelves — that safety notice said the axe lives there.)";
     [TextArea(2, 4)]
     [SerializeField] string breakText =
         "(The axe bites through the jammed shelving. A few swings and the way is open — but the noise rings out across the store.)";
@@ -45,7 +50,9 @@ public class BlockedPath : MonoBehaviour, IInteractable
 
         var state = GameState.Instance;
         if (state == null || !state.getFlag(requiredFlag)) {
-            dialogue.show("", lockedText, dialogue.close);
+            // once they've read where the tool lives, the examine text remembers it
+            bool hinted = state != null && !string.IsNullOrEmpty(hintFlag) && state.getFlag(hintFlag);
+            dialogue.show("", hinted ? hintedLockedText : lockedText, dialogue.close);
             return;
         }
 

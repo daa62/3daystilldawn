@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
     public const float NOISE_WALK_RADIUS      = 8f;     // walking footsteps carry about one aisle
     public const float NOISE_FOOTSTEP_INTERVAL        = 0.4f;   // seconds between footsteps while walking
     public const float NOISE_SPRINT_FOOTSTEP_INTERVAL = 0.2f;  // faster cadence while sprinting
-    public const float ZOMBIE_ATTACK_DAMAGE   = 12f;
+    public const float ZOMBIE_ATTACK_DAMAGE   = 20f;
     public const float ZOMBIE_ATTACK_RANGE    = 1.8f;
     public const float ZOMBIE_ATTACK_COOLDOWN = 1f;
 
@@ -72,7 +72,7 @@ public class GameManager : MonoBehaviour
     public const float STAMINA_START_MAX   = 60f;    // starting stamina capacity (x% of the bar)
     public const float PLAYER_HEALTH_REGEN = 1.5f;   // HP per second, up to the current max
     public const float PLAYER_MIN_MAX_HEALTH   = 20f;   // wounds can't take max HP below this
-    public const float ZOMBIE_WOUND_MAX_HP     = 5f;    // lasting max-HP loss per zombie hit
+    public const float ZOMBIE_WOUND_MAX_HP     = 10f;    // lasting max-HP loss per zombie hit
     public const float STAMINA_MIN_MAX         = 10f;   // hunger can't take stamina capacity below this
     public const float HUNGER_STAMINA_DECAY    = 40f;   // stamina capacity lost per night
     public const float FOOD_STAMINA_RESTORE    = 25f;   // eating food: stamina capacity back
