@@ -17,8 +17,16 @@ public static class ZombieSpawning
             prefab = existing.gameObject;
         }
 
+        // shuffle a copy so which points fire varies run to run — unshuffled, only the
+        // first `count` entries would ever be used and every day looked identical
+        Transform[] order = (Transform[])points.Clone();
+        for (int i = order.Length - 1; i > 0; i--) {
+            int j = Random.Range(0, i + 1);
+            (order[i], order[j]) = (order[j], order[i]);
+        }
+
         for (int i = 0; i < count; i++) {
-            Transform point = points[i % points.Length];
+            Transform point = order[i % order.Length];
             Object.Instantiate(prefab, point.position, point.rotation);
         }
     }
