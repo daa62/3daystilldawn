@@ -7,17 +7,46 @@ using UnityEngine;
 // Lines wrapped in (parentheses) are stage directions and show without a speaker.
 public class FriendNpc : MonoBehaviour, IInteractable
 {
+    const float LOOK_TURN_SPEED = 5f;   // how fast he turns to face you while talking
+
     [SerializeField] string friendName = "Samuel";
 
     bool talkedTonight;   // talk bonus applies once per night
 
+    Transform playerBody;   // who to face while conversing
+    bool conversing;        // only Samuel's own dialogue turns him — not notes/doors
+
     public string getPrompt() => "Talk to " + friendName;
+
+    void Start()
+    {
+        var player = FindAnyObjectByType<PlayerController>();
+        if (player != null) playerBody = player.transform;
+    }
+
+    // while his conversation is open, turn to face the player (FriendWander already
+    // holds him still during dialogue, so nothing fights the rotation)
+    void Update()
+    {
+        if (!conversing) return;
+
+        var dialogue = DialogueUI.Instance;
+        if (dialogue == null || !dialogue.IsOpen) { conversing = false; return; }
+        if (playerBody == null) return;
+
+        Vector3 to = playerBody.position - transform.position;
+        to.y = 0f;
+        if (to.sqrMagnitude < 0.01f) return;
+        transform.rotation = Quaternion.Slerp(transform.rotation,
+            Quaternion.LookRotation(to), Time.deltaTime * LOOK_TURN_SPEED);
+    }
 
     public void interact(PlayerInteractor interactor)
     {
         var dialogue = DialogueUI.Instance;
         if (dialogue == null || dialogue.IsOpen) return;
 
+        conversing = true;
         var state = GameState.Instance;
         if (DayCycle.CurrentPhase == DayCycle.Phase.Night)
             nightCheckIn(dialogue, state, interactor.getInventory());
