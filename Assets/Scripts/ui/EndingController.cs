@@ -14,7 +14,8 @@ public class EndingController : MonoBehaviour
 
         string slide = resolveSlide();
         if (slide != null) {
-            CutscenePlayer.play(new[] { slide }, new[] { resolveEnding().body }, () =>
+            // the slide gets the in-the-moment caption; the splash shows the epilogue
+            CutscenePlayer.play(new[] { slide }, new[] { resolveEnding().caption }, () =>
             {
                 Sfx.ambience(Sfx.MUSIC_ENDING);
                 build();
@@ -35,14 +36,15 @@ public class EndingController : MonoBehaviour
         return bothSaved ? "ending_both" : "ending_alone";
     }
 
-    (string title, string body) resolveEnding()
+    // caption plays over the slide (the moment itself); body is the splash epilogue
+    (string title, string caption, string body) resolveEnding()
     {
         var s = GameState.Instance;
         if (s == null)
-            return ("THREE DAYS TILL DAWN", "Thanks for playing the prototype.");
+            return ("THREE DAYS TILL DAWN", null, "Thanks for playing the prototype.");
 
         if (s.getFlag(GameManager.FLAG_DIED))
-            return ("YOU DIED",
+            return ("YOU DIED", null,
                 s.getFlag(GameManager.FLAG_FRIEND_MET)
                     ? "The dark swallowed you before the third dawn. Somewhere in the mart, Samuel waits for a friend who will never come back."
                     : "The horde caught you alone in the aisles. No one was left to remember your name.");
@@ -53,18 +55,24 @@ public class EndingController : MonoBehaviour
 
         if (health < GameManager.HEALTH_LINE)
             return ("HE TURNS",
+                "The safe room stands empty. You follow the trail he left through the dark aisles — " +
+                "and what you find at the end of it is no longer Samuel.",
                 "Samuel can no longer fight the infection and quietly leaves the safe room. " +
                 "You follow the trail he leaves behind, only to find that he has already fully transformed. " +
                 "The rescue team arrives in time to save you, but is forced to put Samuel down.");
 
         if (bond < GameManager.BOND_LINE)
             return ("HE SLIPS AWAY",
+                "His bedding is cold. He slipped out while you slept — afraid of what he might become, " +
+                "more afraid of what he might do to you. You find him too late.",
                 "Although Samuel's body continues to hold on, he loses the will to keep fighting. " +
                 "Fearing he might hurt you if he turns, he quietly leaves the safe room during the night. " +
                 "You follow the trail he leaves behind, only to find that he has already fully transformed. " +
                 "The rescue team arrives in time to save you, but is forced to put Samuel down.");
 
         return ("BOTH SAVED",
+            "Dawn breaks over the parking lot. Samuel leans on your shoulder the whole way out — " +
+            "still himself, still holding on, as the rescue team's lights sweep in.",
             "Samuel holds onto both his health and his sense of self long enough for the rescue team to arrive. " +
             "You are rescued together before the infection fully takes over. " +
             "The rescue team reveals that a cure has been developed for survivors who have not yet " +
@@ -89,7 +97,7 @@ public class EndingController : MonoBehaviour
             art != null ? new Color(BG.r, BG.g, BG.b, 0.78f) : BG);
         UiFactory.stretch(bg.rectTransform);
 
-        var (title, body) = resolveEnding();
+        var (title, _, body) = resolveEnding();
 
         var titleLabel = UiFactory.text(canvas.transform, "Title", title, 84,
             new Color(0.85f, 0.3f, 0.25f, 1f), TextAlignmentOptions.Center);

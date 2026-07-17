@@ -25,9 +25,18 @@ public static class ZombieSpawning
             (order[i], order[j]) = (order[j], order[i]);
         }
 
-        for (int i = 0; i < count; i++) {
+        // skip empty inspector slots without crashing; valid points still round-robin
+        // when there are fewer of them than zombies to place
+        int placed = 0;
+        for (int i = 0; placed < count && i < count + order.Length; i++) {
             Transform point = order[i % order.Length];
+            if (point == null) continue;
             Object.Instantiate(prefab, point.position, point.rotation);
+            placed++;
         }
+
+        if (placed < count)
+            Debug.LogWarning($"[{context}] Only {placed}/{count} zombies spawned — " +
+                             "every entry in the spawn point list is empty or missing.");
     }
 }
