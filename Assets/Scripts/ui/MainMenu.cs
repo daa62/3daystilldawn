@@ -28,7 +28,8 @@ public class MainMenu : MonoBehaviour
     public void continueToGame()
     {
         Sfx.play(Sfx.UI_CLICK);
-        SceneLoader.load(GameManager.SCENE_SAFE_ROOM);
+        CutscenePlayer.play(new[] { "intro_1", "intro_2", "intro_3" },
+            () => SceneLoader.load(GameManager.SCENE_SAFE_ROOM));
     }
 
     public void backToTitle()

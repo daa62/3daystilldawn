@@ -20,6 +20,7 @@ public class GameState : MonoBehaviour
         }
 
         Instance = this;
+        transform.SetParent(null);   // DontDestroyOnLoad is silently ignored on child objects
         DontDestroyOnLoad(gameObject);
 
         // a new game started from the title screen (no GameState there) seeds here
