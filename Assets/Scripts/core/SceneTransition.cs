@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -26,6 +27,18 @@ public class SceneTransition : MonoBehaviour
         active.StartCoroutine(active.run(sceneName));
     }
 
+    // Fade to black, run atBlack (e.g. resolving the night), then fade back in — same
+    // scene, no reload. Marks time passing, like sleeping through to the next morning.
+    public static void fadeThrough(Action atBlack)
+    {
+        if (active != null) { atBlack?.Invoke(); return; }   // already covered — just run it
+
+        var go = new GameObject("SceneTransition");
+        DontDestroyOnLoad(go);
+        active = go.AddComponent<SceneTransition>();
+        active.StartCoroutine(active.runThrough(atBlack));
+    }
+
     void Awake()
     {
         UiFactory.ensureEventSystem();
@@ -43,6 +56,16 @@ public class SceneTransition : MonoBehaviour
         SceneManager.LoadScene(sceneName);
         yield return null;                  // one frame for the new scene to wake up
         yield return fade(1f, 0f);          // back in
+        active = null;
+        Destroy(gameObject);
+    }
+
+    IEnumerator runThrough(Action atBlack)
+    {
+        yield return fade(0f, 1f);                        // out to black
+        atBlack?.Invoke();                               // resolve the night behind the cover
+        yield return new WaitForSecondsRealtime(0.15f);   // brief beat on black
+        yield return fade(1f, 0f);                        // back in on the new morning
         active = null;
         Destroy(gameObject);
     }

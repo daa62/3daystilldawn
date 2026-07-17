@@ -497,7 +497,10 @@ public class FriendNpc : MonoBehaviour, IInteractable
         showSequence(dialogue, lines, 0, () =>
         {
             dialogue.close();
-            DayCycle.resolveNight();
+            if (DayCycle.CurrentDay >= GameManager.TOTAL_DAYS)
+                DayCycle.resolveNight();                            // final night loads the Ending, which fades on its own
+            else
+                SceneTransition.fadeThrough(DayCycle.resolveNight);  // sleep through to morning behind a black fade
         });
     }
 

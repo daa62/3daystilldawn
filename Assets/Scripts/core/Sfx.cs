@@ -27,6 +27,7 @@ public class Sfx : MonoBehaviour
     public const string MUSIC_ENDING    = "music_ending";
     public const string MUSIC_CUTSCENE  = "music_cutscene";
 
+    const float SFX_VOLUME      = 0.6f;   // master scale for one-shot effects (play / playAt)
     const float AMBIENCE_VOLUME = 0.5f;
     const float FADE_PER_SECOND = 0.8f;
     const float PITCH_JITTER    = 0.04f;   // tiny random detune so repeats don't sound stamped
@@ -113,7 +114,7 @@ public class Sfx : MonoBehaviour
 
         var self = ensure();
         self.oneShot2d.pitch = 1f + Random.Range(-PITCH_JITTER, PITCH_JITTER);
-        self.oneShot2d.PlayOneShot(clip, volume);
+        self.oneShot2d.PlayOneShot(clip, volume * SFX_VOLUME);
     }
 
     // 3d one-shot at a world position (footsteps, zombies, doors)
@@ -127,7 +128,7 @@ public class Sfx : MonoBehaviour
         go.transform.position = position;
         var src = go.AddComponent<AudioSource>();
         src.clip = clip;
-        src.volume = volume;
+        src.volume = volume * SFX_VOLUME;
         src.pitch = 1f + Random.Range(-PITCH_JITTER, PITCH_JITTER);
         src.spatialBlend = 1f;
         src.rolloffMode = AudioRolloffMode.Linear;
