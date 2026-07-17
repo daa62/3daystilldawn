@@ -226,17 +226,15 @@ public class FriendNpc : MonoBehaviour, IInteractable
             {
                 case ItemType.Survival:
                     actions.Add(() => giveItem(dialogue, state, inventory, captured,
-                        GameManager.FRIEND_HEALTH_FOOD, 0, foodResponse(DayCycle.CurrentDay)));
+                        GameManager.FRIEND_HEALTH_FOOD, 0, giveResponse(captured, DayCycle.CurrentDay)));
                     break;
                 case ItemType.Medicine:
                     actions.Add(() => giveItem(dialogue, state, inventory, captured,
-                        GameManager.FRIEND_HEALTH_MEDICINE, 0,
-                        "(He swallows the meds without a word. His breathing evens out, just slightly.)"));
+                        GameManager.FRIEND_HEALTH_MEDICINE, 0, giveResponse(captured, DayCycle.CurrentDay)));
                     break;
                 default:   // Comfort
                     actions.Add(() => giveItem(dialogue, state, inventory, captured,
-                        0, GameManager.BOND_COMFORT_ITEM,
-                        $"(He stares at the {captured.itemName} for a long moment. \"You remembered,\" he says, and something in him settles.)"));
+                        0, GameManager.BOND_COMFORT_ITEM, giveResponse(captured, DayCycle.CurrentDay)));
                     break;
             }
         }
@@ -248,24 +246,190 @@ public class FriendNpc : MonoBehaviour, IInteractable
                             labels.ToArray(), pick => actions[pick]());
     }
 
-    string foodResponse(int day)
+    // Per-item, per-night reactions from the Project 2 dialogue script. Keyed on the
+    // item's display name; anything without bespoke lines falls back to the food/meds
+    // stage directions so new items still read sensibly.
+    string[] giveResponse(ItemData item, int day)
     {
-        switch (day) {
-            case 1: return "(He hesitates before taking it, then eats with small bites.)";
-            case 2: return "(He eats slowly, like he has to remember how.)";
-            default: return "(He forces himself to take a few bites before quietly setting the can aside.)";
+        switch (item.itemName)
+        {
+            case "Water Bottle":
+                switch (day) {
+                    case 1:  return new[] { "(He drinks carefully, then lets out a quiet breath.)" };
+                    case 2:  return new[] { "(He swallows with some effort before lowering the bottle.)" };
+                    default: return new[] { "(He takes one small sip then quietly shakes his head.)" };
+                }
+            case "Medkit":
+                switch (day) {
+                    case 1:  return new[] { "(He studies the items inside then quietly cleans and redresses his wound.)" };
+                    case 2:  return new[] { "(His hands tremble as he works, but he quietly finishes cleaning and redressing his wound.)" };
+                    default: return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
+                }
+            case "Antibiotics":
+                switch (day) {
+                    case 1:  return new[] { "(He studies the label for a moment before swallowing one.)" };
+                    case 2:  return new[] { "(He shakes out a pill without checking the label and swallows it with difficulty.)" };
+                    default: return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
+                }
+            case "Plush Bear":
+                switch (day) {
+                    case 1:  return new[] {
+                        "(He looks at the plush bear then laughs softly while hugging it close.)",
+                        "Finally. A real bear.",
+                        "I should've brought this on that camping trip.",
+                        "Would've saved us a lot of arguing." };
+                    case 2:  return new[] {
+                        "(He smiles faintly at the bear and pats its head.)",
+                        "Oh, it's a proper bear and not a raccoon this time." };
+                    default: return new[] {
+                        "(He brushes the fur with a light hand.)",
+                        "…A real bear." };
+                }
+            case "Deck of Cards":
+                switch (day) {
+                    case 1:  return new[] {
+                        "Remember when we used to play during road trips?",
+                        "You'd get so competitive but never win against me.",
+                        "Watching you sulk while building a tower of cards was funny." };
+                    case 2:  return new[] {
+                        "You never did beat me.",
+                        "I don't think you ever will." };
+                    default: return new[] {
+                        "(He traces the edge of a card with his thumb.)",
+                        "…Still undefeated." };
+                }
+            case "Camping Lantern":
+                switch (day) {
+                    case 1:  return new[] {
+                        "This reminds me of when you insisted we try the \"old fashioned\" way of camping.",
+                        "You tried so hard to rub wooden sticks together for our fire.",
+                        "Thankfully I brought an oil lantern." };
+                    case 2:  return new[] {
+                        "You really thought rubbing sticks together would work.",
+                        "Good thing one of us came prepared with an oil lantern." };
+                    default: return new[] {
+                        "(He watches the lantern's light flicker.)",
+                        "…I did a good job bringing one back then." };
+                }
+            case "Bandages":
+                switch (day) {
+                    case 1:  return new[] { "(He turns away from you and carefully wraps the fresh bandage around the wound.)" };
+                    case 2:  return new[] { "(He turns away with effort and replaces the old bandage with trembling hands.)" };
+                    default: return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
+                }
+            case "Ointment":
+                switch (day) {
+                    case 1:  return new[] { "(He turns away from you to gently spread the ointment over the wound and winces.)" };
+                    case 2:  return new[] { "(He turns away with effort and applies the ointment with trembling hands.)" };
+                    default: return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
+                }
+            case "Birthday Card":
+                switch (day) {
+                    case 1:  return new[] {
+                        "\"Happy Birthday.\"",
+                        "(He opens the card, looks at the back, then flips it around again.)",
+                        "That's it? No tacky glitter, terrible jokes, or embarrassing pictures?",
+                        "My cards were way better than this." };
+                    case 2:  return new[] {
+                        "\"Happy Birthday,\" huh…",
+                        "I still think birthday cards should have terrible jokes.",
+                        "They have more personality that way." };
+                    default: return new[] {
+                        "(He looks at the card for a long moment.)",
+                        "…Mine were better." };
+                }
+            case "Handheld Radio":
+                switch (day) {
+                    case 1:  return new[] {
+                        "(He presses the button, listening to the static.)",
+                        "Remember when we used these as kids?",
+                        "You'd hide somewhere and make me \"search and rescue\" you.",
+                        "…I still think secretly running around and changing spots is unfair." };
+                    case 2:  return new[] {
+                        "(He presses the button, listening to the static.)",
+                        "Remember \"search and rescue\"? It was fun.",
+                        "…Still think changing spots was cheating though." };
+                    default: return new[] {
+                        "(He feels the bevel of the button without pressing it.)",
+                        "…It was fun, even if you were a cheater." };
+                }
+            case "Pocket Tent":
+                switch (day) {
+                    case 1:  return new[] {
+                        "This reminds me of our first camping trip.",
+                        "We bought the cheapest tent we could find. Big mistake.",
+                        "It leaked, the zipper broke, and I swear the wind almost took it away.",
+                        "We pooled our money together to get a better one next time we went." };
+                    case 2:  return new[] {
+                        "Our first tent was awful.",
+                        "We really learned not to buy the cheapest one." };
+                    default: return new[] {
+                        "(He runs his hand across the logo.)",
+                        "…The second one was worth it." };
+                }
+            case "Polaroid Photo":
+                switch (day) {
+                    case 1:  return new[] {
+                        "I used to be so obsessed with these.",
+                        "I think I spent more on the film than the actual camera.",
+                        "…You kept all the ones I took of you?",
+                        "Thanks. I hope I can take more someday." };
+                    case 2:  return new[] {
+                        "I used to have so many of these.",
+                        "…You kept the ones I took?",
+                        "I'm glad." };
+                    default: return new[] {
+                        "(He smiles faintly at the familiar glossy texture.)",
+                        "…I miss my collection." };
+                }
+            case "Raccoon Plush":
+                switch (day) {
+                    case 1:  return new[] {
+                        "(He laughs quietly.)",
+                        "Oh no. Don't tell me you still think these things are basically bears.",
+                        "\"It's like a small bear, Sam.\"",
+                        "It was absolutely not a bear." };
+                    case 2:  return new[] {
+                        "(He laughs quietly.)",
+                        "You're never going to convince me.",
+                        "This is a raccoon, not a bear." };
+                    default: return new[] {
+                        "(He chuckles quietly.)",
+                        "…A plush \"basically a bear.\"" };
+                }
+            case "Wrapped Gift Box":
+                switch (day) {
+                    case 1:  return new[] {
+                        "Remember how you always got excited before opening presents?",
+                        "You'd always shake the box and try to guess what was inside.",
+                        "You were never right though." };
+                    case 2:  return new[] {
+                        "You always thought shaking it would help.",
+                        "It never did." };
+                    default: return new[] {
+                        "(He taps the lid twice.)",
+                        "…Still guessing?" };
+                }
+            default:   // food and any item without bespoke lines
+                if (item.type == ItemType.Medicine)
+                    return new[] { "(He accepts it, turning it over in his hands before carefully placing it within reach.)" };
+                switch (day) {
+                    case 1:  return new[] { "(He hesitates before taking it, then eats with small bites.)" };
+                    case 2:  return new[] { "(He eats slowly, like he has to remember how.)" };
+                    default: return new[] { "(He forces himself to take a few bites before quietly setting the can aside.)" };
+                }
         }
     }
 
     void giveItem(DialogueUI dialogue, GameState state, Inventory inventory, ItemData item,
-                  int healthDelta, int bondDelta, string response)
+                  int healthDelta, int bondDelta, string[] response)
     {
         inventory.removeItem(item);
         addClamped(state, GameManager.COUNTER_FRIEND_HEALTH, healthDelta);
         addClamped(state, GameManager.COUNTER_BOND, bondDelta);
         if (healthDelta > 0) state?.setFlag(GameManager.FLAG_CARED_OVERNIGHT);
 
-        dialogue.show("", response, () => nightMenu(dialogue, state, inventory));
+        showSequence(dialogue, response, 0, () => nightMenu(dialogue, state, inventory));
     }
 
     void talkTonight(DialogueUI dialogue, GameState state, Inventory inventory)
