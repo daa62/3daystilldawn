@@ -111,7 +111,7 @@ public class PlayerHUD : MonoBehaviour
     void updateDayLabel()
     {
         if (dayLabel != null)
-            dayLabel.text = $"Day {DayCycle.CurrentDay} of {GameManager.TOTAL_DAYS} — {DayCycle.CurrentPhase}";
+            dayLabel.text = $"Day {DayCycle.CurrentDay} of {GameManager.TOTAL_DAYS}";
 
         refreshObjective();
     }

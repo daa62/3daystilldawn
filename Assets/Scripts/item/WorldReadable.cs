@@ -18,12 +18,23 @@ public class WorldReadable : MonoBehaviour, IInteractable
 
     void Start()
     {
+        if (sparkle && !alreadyRead())
+            gameObject.AddComponent<ClueSparkle>();
+    }
+
+    // survives the daily scene reloads (LootState, same position-id trick as pickups),
+    // so a note read on day 1 doesn't start shimmering again on day 2
+    bool alreadyRead()
+    {
+        if (LootState.isCollected(readId())) return true;
         var state = GameState.Instance;
-        bool discovered = state != null && !string.IsNullOrEmpty(discoverFlag) && state.getFlag(discoverFlag);
-        if (sparkle && !discovered) {
-            var glow = gameObject.AddComponent<ClueSparkle>();
-            glow.animate = promptVerb == "Read";   // traces stay flat on the floor, notes spin
-        }
+        return state != null && !string.IsNullOrEmpty(discoverFlag) && state.getFlag(discoverFlag);
+    }
+
+    string readId()
+    {
+        Vector3 p = transform.position;
+        return $"read:{gameObject.scene.name}:{p.x:F2}:{p.y:F2}:{p.z:F2}";
     }
 
     public void interact(PlayerInteractor interactor)
@@ -39,6 +50,8 @@ public class WorldReadable : MonoBehaviour, IInteractable
 
         if (firstTime && state != null && !string.IsNullOrEmpty(discoverFlag))
             state.setFlag(discoverFlag);
+
+        LootState.markCollected(readId());   // no re-sparkle after the daily scene reload
 
         var glow = GetComponent<ClueSparkle>();
         if (glow != null) Destroy(glow);

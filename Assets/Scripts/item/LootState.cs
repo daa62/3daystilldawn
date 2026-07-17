@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
-// Which world items have already been scavenged. Static so it survives the GameScene
+// Which world items have already been scavenged (and which clues have been read —
+// WorldReadable stores "read:"-prefixed ids here). Static so it survives the GameScene
 // reloading each day: the store depletes across the three days instead of restocking.
 // Plain static (like Inventory.carried) — no DontDestroyOnLoad needed; cleared on a
 // new game via DayCycle.reset().
