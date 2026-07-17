@@ -40,8 +40,8 @@ public class GameManager : MonoBehaviour
     public const float SPRINT_FOV_KICK   = 6f;    // degrees added to base FOV while sprinting
     public const float FOV_LERP_SPEED    = 8f;     // how fast FOV eases toward its target
     public const float HEADBOB_FREQUENCY = 2.5f;   // bob cycles scale with speed * this
-    public const float HEADBOB_AMPLITUDE = 0.03f; // vertical bob height at walking speed (metres)
-    public const float HEADBOB_SPRINT_MULT = 1.3f; // amplitude/pace boost at full sprint speed
+    public const float HEADBOB_AMPLITUDE = 0.022f; // vertical bob height at walking speed (metres)
+    public const float HEADBOB_SPRINT_MULT = 1.25f; // amplitude/pace boost at full sprint speed
     public const float HEADBOB_MIN_SPEED = 0.5f;   // below this speed (units/s) the bob rests
 
     // gravity for simple non-player entities (zombie / npc), continuous m/s^2

@@ -23,6 +23,7 @@ public static class DayCycle
         PlayerCondition.reset();     // unhurt and well-fed on a new game
         DaylightTimer.resetClock();  // fresh daylight budget
         LootState.reset();           // restock the store for a fresh run
+        DroppedItems.reset();        // and clear the previous run's floor drops
         seedPending = true;
         applyPendingSeed();
         onChanged?.Invoke();

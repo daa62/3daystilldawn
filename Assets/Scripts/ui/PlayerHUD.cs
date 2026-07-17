@@ -246,6 +246,8 @@ public class PlayerHUD : MonoBehaviour
         hitFlash = flash;
     }
 
+    const float CROSSHAIR_SPRITE_SIZE = 48f;   // on-screen size of a custom crosshair sprite
+
     void buildCrosshair(Transform root)
     {
         var go = new GameObject("Crosshair", typeof(RectTransform));
@@ -255,7 +257,20 @@ public class PlayerHUD : MonoBehaviour
         rt.anchoredPosition = Vector2.zero;
 
         Color core = new Color(1f, 1f, 1f, 0.9f);
-        crosshairDot(go.transform, 4f, core);
+
+        // custom art wins when present (Resources/Ui/crosshair); the drawn dot is the fallback
+        var custom = Resources.Load<Sprite>("Ui/crosshair");
+        if (custom != null) {
+            var img = image(go.transform, "Sprite", core);
+            img.sprite = custom;
+            img.preserveAspect = true;
+            var srt = img.rectTransform;
+            srt.anchorMin = srt.anchorMax = srt.pivot = new Vector2(0.5f, 0.5f);
+            srt.anchoredPosition = Vector2.zero;
+            srt.sizeDelta = new Vector2(CROSSHAIR_SPRITE_SIZE, CROSSHAIR_SPRITE_SIZE);
+        } else {
+            crosshairDot(go.transform, 4f, core);
+        }
     }
 
     void crosshairDot(Transform parent, float diameter, Color color)

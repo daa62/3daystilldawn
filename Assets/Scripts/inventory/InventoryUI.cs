@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
@@ -20,7 +22,19 @@ public class InventoryUI : MonoBehaviour
         playerController = FindAnyObjectByType<PlayerController>();
         inventory.onChanged.AddListener(refresh);
         refresh(new List<ItemData>(inventory.getItems()));   // items carried in from the previous scene
+        buildControlsHint();
         panelRoot.SetActive(false);
+    }
+
+    // small reminder along the panel's bottom edge, visible whenever the inventory is
+    void buildControlsHint()
+    {
+        var hint = UiFactory.text(panelRoot.transform, "ControlsHint",
+            "Left-click  —  use / eat     Right-click  —  drop", 20,
+            new Color(1f, 1f, 1f, 0.55f), TextAlignmentOptions.Center);
+        UiFactory.anchor(hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
+        hint.rectTransform.anchoredPosition = new Vector2(0f, 16f);
+        hint.rectTransform.sizeDelta = new Vector2(760f, 28f);
     }
 
     void Update()
@@ -52,16 +66,31 @@ public class InventoryUI : MonoBehaviour
             if (icon  && item.icon) icon.sprite = item.icon;
             if (label)              label.text  = item.itemName;
 
-            // click to use (eat food / take meds); the prefab has no Button, so add one
+            // left-click to use (eat food / take meds); the prefab has no Button, so add one
             var button = slot.GetComponent<Button>();
             if (button == null) button = slot.AddComponent<Button>();
             if (button.targetGraphic == null) button.targetGraphic = icon;
             ItemData captured = item;
             button.onClick.AddListener(() => inventory.useItem(captured));
+
+            // right-click to drop it on the floor (Button only fires on left-click)
+            var rightClick = slot.AddComponent<SlotRightClick>();
+            rightClick.onRight = () => inventory.dropItem(captured);
         }
 
         if (slotCountText) {
             slotCountText.text = $"{inventory.getUsedSlots()} / {inventory.getMaxSlots()} slots";
+        }
+    }
+
+    // Button only reacts to left-clicks; this catches the right-click for dropping
+    class SlotRightClick : MonoBehaviour, IPointerClickHandler
+    {
+        public Action onRight;
+
+        public void OnPointerClick(PointerEventData e)
+        {
+            if (e.button == PointerEventData.InputButton.Right) onRight?.Invoke();
         }
     }
 

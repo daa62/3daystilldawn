@@ -48,6 +48,22 @@ public class Inventory : MonoBehaviour, IInventory
         return true;
     }
 
+    // drop onto the floor just ahead of the player as a re-pickupable world item
+    public bool dropItem(ItemData item)
+    {
+        if (!removeItem(item)) return false;
+
+        Vector3 spot = transform.position + transform.forward * 1.1f;
+        // settle onto whatever surface is below the drop point
+        if (Physics.Raycast(spot + Vector3.up, Vector3.down, out RaycastHit hit, 3f))
+            spot = hit.point + Vector3.up * 0.03f;
+
+        WorldItem.spawnDropped(item, spot);
+        Sfx.play(Sfx.PICKUP, 0.5f);
+        PickupFeed.notice($"Dropped {item.itemName}");
+        return true;
+    }
+
     public bool useItem(ItemData item)
     {
         if (!items.Contains(item)) return false;

@@ -586,8 +586,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "WASD  \u2014  Move\nMouse  \u2014  Look\nLeft Shift  \u2014  Sprint\nLeft
     Ctrl  \u2014  Crouch (slow, but silent)\nSpace  \u2014  Jump\nF  \u2014  Flashlight\nE 
-    \u2014  Interact / Pick up\nTab  \u2014  Inventory (click an item to eat or use
-    it)\n\nZombies hunt by sight and sound \u2014 sprinting is loud, crouching is
+    \u2014  Interact / Pick up\nTab  \u2014  Inventory (left-click to use an item, right-click to drop it)\n\nZombies hunt by sight and sound \u2014 sprinting is loud, crouching is
     quiet.\nEach morning, head out the safe room door to scavenge before nightfall.\nFood
     and medicine keep Samuel's body fighting; time together and the right keepsakes
     keep his spirit fighting. You will not have daylight for everything.\n"
