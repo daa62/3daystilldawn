@@ -11,7 +11,28 @@ public class EndingController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        build();
+
+        string slide = resolveSlide();
+        if (slide != null) {
+            CutscenePlayer.play(new[] { slide }, () =>
+            {
+                Sfx.ambience(Sfx.MUSIC_ENDING);
+                build();
+            });
+        } else {
+            build();
+        }
+    }
+
+    // death has no slide; both lost-Samuel endings share one
+    string resolveSlide()
+    {
+        var s = GameState.Instance;
+        if (s == null || s.getFlag(GameManager.FLAG_DIED)) return null;
+
+        bool bothSaved = s.getCounter(GameManager.COUNTER_FRIEND_HEALTH) >= GameManager.HEALTH_LINE
+                      && s.getCounter(GameManager.COUNTER_BOND) >= GameManager.BOND_LINE;
+        return bothSaved ? "ending_both" : "ending_alone";
     }
 
     (string title, string body) resolveEnding()
@@ -53,7 +74,17 @@ public class EndingController : MonoBehaviour
         UiFactory.ensureEventSystem();
         var canvas = UiFactory.overlayCanvas(transform, "EndingCanvas");
 
-        var bg = UiFactory.image(canvas.transform, "Background", BG);
+        string slide = resolveSlide();
+        var art = slide != null ? Resources.Load<Sprite>("Cutscenes/" + slide) : null;
+        if (art != null) {
+            var back = UiFactory.image(canvas.transform, "Backdrop", Color.white);
+            UiFactory.stretch(back.rectTransform);
+            back.sprite = art;
+            back.preserveAspect = true;
+        }
+
+        var bg = UiFactory.image(canvas.transform, "Background",
+            art != null ? new Color(BG.r, BG.g, BG.b, 0.78f) : BG);
         UiFactory.stretch(bg.rectTransform);
 
         var (title, body) = resolveEnding();

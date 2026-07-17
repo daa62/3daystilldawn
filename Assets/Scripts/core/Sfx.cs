@@ -25,6 +25,7 @@ public class Sfx : MonoBehaviour
     public const string AMB_SAFEROOM    = "amb_saferoom";
     public const string MUSIC_MENU      = "music_menu";
     public const string MUSIC_ENDING    = "music_ending";
+    public const string MUSIC_CUTSCENE  = "music_cutscene";
 
     const float AMBIENCE_VOLUME = 0.5f;
     const float FADE_PER_SECOND = 0.8f;
