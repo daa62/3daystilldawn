@@ -1,24 +1,27 @@
 using UnityEngine;
+using UnityEngine.AI;
 
-// Chases the player on sight, investigates noises otherwise. No navmesh — walks
-// straight at its goal and slides along walls via the CharacterController.
+// Chases the player on sight, investigates noises otherwise. NavMesh-driven: the agent
+// paths around shelves and aisles instead of the old straight-line whisker steering.
+// The CharacterController stays purely as the physical collider (the player bumps into
+// zombies); this script never moves it — the agent moves the transform.
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class Zombie : MonoBehaviour
 {
     static readonly int SpeedParam  = Animator.StringToHash("Speed");
     static readonly int AttackParam = Animator.StringToHash("Attack");
 
-    [Tooltip("Movement speed (units/second) — used for chasing and investigating alike.")]
+    // the script owns stoppingDistance per mode: close enough to bite while chasing,
+    // tight for wander/investigate — one inspector value for both broke arrivals
+    const float CHASE_STOP_DISTANCE  = 1.2f;
+    const float TRAVEL_STOP_DISTANCE = 0.2f;
+
+    [Tooltip("Movement speed (units/second) — used for chasing and wandering alike.")]
     [SerializeField] float moveSpeed = GameManager.ZOMBIE_MOVE_SPEED;
 
     [Tooltip("Delay from the attack starting to the damage landing (match the bite frame).")]
     [SerializeField] float attackWindup = 0.4f;
-
-    [Header("Obstacle avoidance")]
-    [Tooltip("How far ahead the zombie probes for walls to steer around.")]
-    [SerializeField] float avoidProbeDistance = 1.6f;
-    [Tooltip("Layers treated as walls/obstacles. Set to your map geometry + props.")]
-    [SerializeField] LayerMask obstacleMask = ~0;
 
     [Header("Idle wandering")]
     [Tooltip("How far the zombie strays from its post while idle. 0 = stays put (guard).")]
@@ -27,11 +30,14 @@ public class Zombie : MonoBehaviour
     [SerializeField] float wanderPauseMin = 3f;
     [SerializeField] float wanderPauseMax = 9f;
 
-    CharacterController controller;
+    [Header("Debug")]
+    [Tooltip("Log AI decisions to the console and draw the current destination in the Scene view.")]
+    [SerializeField] bool debugAi = false;
+
+    NavMeshAgent agent;
     Animator animator;   // on the model child; optional — AI runs fine without one
     Transform target;
     Health targetHealth;
-    Vector3 velocity;
     float chaseMemory;
     float attackCooldown;
 
@@ -39,23 +45,27 @@ public class Zombie : MonoBehaviour
     bool hasNoise;
     Vector3 noisePosition;
     float lingerTimer;
+    Vector3 lastKnownTargetPos;   // where the search continues after losing a chase
 
     bool wasChasing;
     float groanTimer;
 
     // idle wandering
     Vector3 homePosition;      // the post the zombie loosely patrols around
-    Vector3 wanderTarget;
     bool hasWanderTarget;
     float wanderPauseTimer;
-    float wanderGiveUpTimer;
 
     void Awake()
     {
-        controller = GetComponent<CharacterController>();
-        animator   = GetComponentInChildren<Animator>();
+        agent    = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<Animator>();
         lastPosition = transform.position;
         groanTimer = Random.Range(2f, 12f);   // desync the pack's first groans
+
+        agent.speed        = moveSpeed;
+        agent.angularSpeed = GameManager.ZOMBIE_TURN_SPEED * 45f;   // slerp factor -> deg/sec
+        agent.acceleration = 8f;
+        agent.autoBraking  = false;   // shamble through waypoints instead of easing at each
     }
 
     void OnEnable()
@@ -77,6 +87,11 @@ public class Zombie : MonoBehaviour
             targetHealth = player.GetComponent<Health>();
         }
 
+        // spawned zombies (night pack) may land slightly off the mesh — snap on
+        if (!agent.isOnNavMesh &&
+            NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+            agent.Warp(hit.position);
+
         homePosition = transform.position;
         wanderPauseTimer = Random.Range(0f, wanderPauseMax);   // desync the pack's first strolls
     }
@@ -86,7 +101,7 @@ public class Zombie : MonoBehaviour
         if (attackCooldown > 0f) attackCooldown -= Time.deltaTime;
         tickPendingHit();
 
-        if (target != null)
+        if (target != null && agent.isOnNavMesh)
         {
             if (canSeeTarget())
                 chaseMemory = GameManager.ZOMBIE_SIGHT_MEMORY;
@@ -95,13 +110,24 @@ public class Zombie : MonoBehaviour
 
             if (chaseMemory > 0f)
             {
-                if (!wasChasing) Sfx.playAt(Sfx.ZOMBIE_ALERT, transform.position);
+                if (!wasChasing) { Sfx.playAt(Sfx.ZOMBIE_ALERT, transform.position); log("spotted the player — chasing"); }
                 wasChasing = true;
+                hasNoise = false;                       // the live chase supersedes older noises
+                lastKnownTargetPos = target.position;   // remember where to search if we lose them
                 chase();
                 tryAttack();
             }
             else
             {
+                if (wasChasing)
+                {
+                    // lost them: press on to where they were last seen instead of
+                    // snapping around toward some stale footstep heard mid-chase
+                    log("lost the player — checking where they were last seen");
+                    hasNoise = true;
+                    noisePosition = lastKnownTargetPos;
+                    lingerTimer = GameManager.ZOMBIE_INVESTIGATE_LINGER;
+                }
                 wasChasing = false;
                 if (hasNoise) investigate();
                 else wander();
@@ -109,12 +135,10 @@ public class Zombie : MonoBehaviour
         }
 
         updateGroan();
-        applyGravity();
         updateAnimator();
     }
 
-    // animator speed comes from frame displacement — controller.velocity only sees
-    // the last Move() call, and the gravity Move zeroes its horizontal part
+    // animator speed comes from frame displacement — one signal for any mover
     Vector3 lastPosition;
 
     // actual horizontal speed this frame (FootIK reads it to know when to plant feet)
@@ -140,59 +164,64 @@ public class Zombie : MonoBehaviour
         hasNoise = true;
         noisePosition = position;
         lingerTimer = GameManager.ZOMBIE_INVESTIGATE_LINGER;
+        hasWanderTarget = false;   // drop the idle stroll — something made a sound
+        log($"heard a noise at {position}");
     }
 
     void investigate()
     {
-        if (!hasNoise) return;
-
         Vector3 flat = noisePosition - transform.position;
         flat.y = 0f;
 
         if (flat.magnitude > 1f)
         {
-            moveToward(noisePosition, moveSpeed);
+            agent.speed = GameManager.ZOMBIE_INVESTIGATE_SPEED;
+            agent.stoppingDistance = TRAVEL_STOP_DISTANCE;
+            agent.SetDestination(noisePosition);
             return;
         }
 
+        // at the noise spot: linger, then drift back to idling
+        agent.ResetPath();
         lingerTimer -= Time.deltaTime;
-        if (lingerTimer <= 0f) hasNoise = false;
+        if (lingerTimer <= 0f) { hasNoise = false; log("done investigating — back to roaming"); }
     }
 
-    // Idle behaviour: mostly stand, but now and then shuffle to a random spot near the
-    // zombie's post, then pause again. Keeps the store feeling alive without the zombie
-    // straying off its guarded area. Straight-line movement — it slides off walls, and
-    // a give-up timer stops it grinding on an unreachable point.
+    // Idle behaviour: mostly stand, but now and then shuffle to a random reachable
+    // spot near the zombie's post, then pause again. Keeps the store feeling alive
+    // without the zombie straying off its guarded area — a chase or noise can pull
+    // it away, and the next stroll naturally draws it back home.
     void wander()
     {
-        if (wanderRadius <= 0f) return;   // this zombie is a stationary guard
+        if (wanderRadius <= 0f || agent.pathPending) return;
 
-        if (wanderPauseTimer > 0f)
+        if (hasWanderTarget)
         {
-            wanderPauseTimer -= Time.deltaTime;
-            return;   // standing idle
-        }
+            // arrival must respect the agent's stopping distance — a fixed threshold
+            // tighter than it left zombies frozen mid-"stroll" forever
+            if (agent.hasPath && agent.remainingDistance > agent.stoppingDistance + 0.4f)
+                return;   // still strolling
 
-        if (!hasWanderTarget)
-        {
-            Vector2 offset = Random.insideUnitCircle * wanderRadius;
-            wanderTarget = homePosition + new Vector3(offset.x, 0f, offset.y);
-            hasWanderTarget = true;
-            wanderGiveUpTimer = wanderRadius / Mathf.Max(0.1f, moveSpeed) + 2f;
-        }
-
-        Vector3 flat = wanderTarget - transform.position;
-        flat.y = 0f;
-        wanderGiveUpTimer -= Time.deltaTime;
-
-        if (flat.magnitude <= 1f || wanderGiveUpTimer <= 0f)
-        {
             hasWanderTarget = false;
+            agent.ResetPath();
             wanderPauseTimer = Random.Range(wanderPauseMin, wanderPauseMax);
+            log($"stroll done — standing for {wanderPauseTimer:F1}s");
             return;
         }
 
-        moveToward(wanderTarget, moveSpeed);
+        wanderPauseTimer -= Time.deltaTime;
+        if (wanderPauseTimer > 0f) return;   // standing idle
+
+        Vector2 offset = Random.insideUnitCircle * wanderRadius;
+        Vector3 candidate = homePosition + new Vector3(offset.x, 0f, offset.y);
+        if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+        {
+            agent.speed = moveSpeed;
+            agent.stoppingDistance = TRAVEL_STOP_DISTANCE;
+            hasWanderTarget = agent.SetDestination(hit.position);
+            log(hasWanderTarget ? $"new wander target {hit.position}" : "SetDestination refused the target");
+        }
+        else log($"no navmesh near candidate {candidate}");
     }
 
     float pendingHitTimer = -1f;   // <0 = no swing in progress
@@ -268,67 +297,21 @@ public class Zombie : MonoBehaviour
 
     void chase()
     {
-        moveToward(target.position, moveSpeed);
+        agent.speed = moveSpeed;
+        agent.stoppingDistance = CHASE_STOP_DISTANCE;
+        agent.SetDestination(target.position);
     }
 
-    void moveToward(Vector3 point, float speed)
+    void log(string message)
     {
-        Vector3 direction = point - transform.position;
-        direction.y = 0f;
-        if (direction.sqrMagnitude < 0.0001f) return;
-
-        direction.Normalize();
-        direction = avoidObstacles(direction);   // steer around walls instead of grinding
-
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation,
-            Quaternion.LookRotation(direction),
-            Time.deltaTime * GameManager.ZOMBIE_TURN_SPEED);
-
-        controller.Move(direction * speed * Time.deltaTime);
+        if (debugAi) Debug.Log($"[Zombie] {name}: {message}", this);
     }
 
-    static readonly float[] AvoidAngles = { 25f, 50f, 75f };
-
-    // Whisker avoidance: if a wall is dead ahead, deflect toward the nearest clear
-    // heading so the zombie rounds obstacles rather than shoving into them. The target
-    // itself is never treated as an obstacle (so chasing still closes the gap).
-    Vector3 avoidObstacles(Vector3 desired)
+    void OnDrawGizmosSelected()
     {
-        if (!blocked(desired)) return desired;
-
-        foreach (float angle in AvoidAngles)
-            foreach (int side in Sides)
-            {
-                Vector3 candidate = Quaternion.Euler(0f, angle * side, 0f) * desired;
-                if (!blocked(candidate)) return candidate;
-            }
-        return desired;   // boxed in on all sides — nothing to do but push (rare)
-    }
-
-    static readonly int[] Sides = { 1, -1 };
-
-    bool blocked(Vector3 dir)
-    {
-        // start the probe just outside our own capsule so we don't self-hit
-        Vector3 origin = transform.position + Vector3.up * (controller.height * 0.5f)
-                         + dir * (controller.radius + 0.05f);
-        if (!Physics.Raycast(origin, dir, out RaycastHit hit, avoidProbeDistance,
-                             obstacleMask, QueryTriggerInteraction.Ignore))
-            return false;
-
-        // don't avoid the player (or its children) — that's who we're trying to reach
-        if (target != null && (hit.transform == target || hit.transform.IsChildOf(target)))
-            return false;
-
-        return true;
-    }
-
-    void applyGravity()
-    {
-        if (controller.isGrounded && velocity.y < 0f)
-            velocity.y = -2f;
-        velocity.y += GameManager.PLAYER_GRAVITY * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        if (!debugAi || agent == null || !agent.hasPath) return;
+        Gizmos.color = wasChasing ? Color.red : Color.cyan;
+        Gizmos.DrawSphere(agent.destination, 0.2f);
+        Gizmos.DrawLine(transform.position, agent.destination);
     }
 }

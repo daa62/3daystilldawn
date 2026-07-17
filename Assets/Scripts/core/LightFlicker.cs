@@ -29,7 +29,6 @@ public class LightFlicker : MonoBehaviour
     float stutterTimer;   // >0: counting down to the next burst
     float stutterLeft;    // >0: currently dark
     float gapLeft;        // >0: briefly lit between blinks of a burst
-    float surgeLeft;      // >0: overshooting after the tube catches again
     int   blinksLeft;     // remaining blinks in the current burst
 
     void Awake()
@@ -65,26 +64,18 @@ public class LightFlicker : MonoBehaviour
         float level = 1f - shimmer * Mathf.PerlinNoise(Time.time * shimmerSpeed, seed);
 
         if (stutterLeft > 0f) {
-            // dark blink; when it ends, either gap to the next blink or surge back on
+            // dark blink — dead black; when it ends, gap to the next blink or come back on
             stutterLeft -= Time.deltaTime;
-            level = 0.02f;   // not quite zero — a dying tube still ghosts
+            level = 0f;
             if (stutterLeft <= 0f) {
                 if (--blinksLeft > 0) gapLeft = Random.Range(0.04f, 0.12f);
-                else {
-                    surgeLeft    = Random.Range(0.1f, 0.25f);
-                    stutterTimer = nextStutterDelay();
-                }
+                else stutterTimer = nextStutterDelay();
             }
         }
         else if (gapLeft > 0f) {
             // brief lit moment inside a burst, then dark again
             gapLeft -= Time.deltaTime;
             if (gapLeft <= 0f) stutterLeft = Random.Range(stutterLength.x, stutterLength.y);
-        }
-        else if (surgeLeft > 0f) {
-            // the tube catches: a hot overshoot before settling
-            surgeLeft -= Time.deltaTime;
-            level = 1.35f;
         }
         else if (stutterEvery > 0f) {
             stutterTimer -= Time.deltaTime;
