@@ -12,8 +12,19 @@ public class WorldReadable : MonoBehaviour, IInteractable
     [Header("Optional narrative hooks")]
     [SerializeField] string discoverFlag = "";                   // GameState flag set on first read
     [SerializeField] bool removeAfterReading = false;            // e.g. a note the player pockets
+    [SerializeField] bool sparkle = true;                        // shimmer until read, so clues stand out
 
     public string getPrompt() => promptVerb + " " + title;
+
+    void Start()
+    {
+        var state = GameState.Instance;
+        bool discovered = state != null && !string.IsNullOrEmpty(discoverFlag) && state.getFlag(discoverFlag);
+        if (sparkle && !discovered) {
+            var glow = gameObject.AddComponent<ClueSparkle>();
+            glow.animate = promptVerb == "Read";   // traces stay flat on the floor, notes spin
+        }
+    }
 
     public void interact(PlayerInteractor interactor)
     {
@@ -28,6 +39,9 @@ public class WorldReadable : MonoBehaviour, IInteractable
 
         if (firstTime && state != null && !string.IsNullOrEmpty(discoverFlag))
             state.setFlag(discoverFlag);
+
+        var glow = GetComponent<ClueSparkle>();
+        if (glow != null) Destroy(glow);
 
         if (removeAfterReading)
             Destroy(gameObject);
