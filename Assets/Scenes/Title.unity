@@ -584,12 +584,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "WASD  \u2014  Move\nMouse  \u2014  Look\nLeft Shift  \u2014  Sprint\nSpace 
-    \u2014  Jump\nE  \u2014  Interact / Pick up\nTab  \u2014  Toggle inventory\n\nEach
-    morning, head out the safe room door to scavenge before nightfall.\nFood and
-    medicine keep Samuel's body fighting; time together and the right\nkeepsakes
-    keep his spirit fighting. You will not have daylight for everything.\n\nSpend
-    the evening with him, then rest. Rescue comes after the third night."
+  m_text: "WASD  \u2014  Move\nMouse  \u2014  Look\nLeft Shift  \u2014  Sprint\nLeft
+    Ctrl  \u2014  Crouch (slow, but silent)\nSpace  \u2014  Jump\nF  \u2014  Flashlight\nE 
+    \u2014  Interact / Pick up\nTab  \u2014  Inventory (click an item to eat or use
+    it)\n\nZombies hunt by sight and sound \u2014 sprinting is loud, crouching is
+    quiet.\nEach morning, head out the safe room door to scavenge before nightfall.\nFood
+    and medicine keep Samuel's body fighting; time together and the right keepsakes
+    keep his spirit fighting. You will not have daylight for everything.\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1094,7 +1095,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -330}
+  m_AnchoredPosition: {x: 0, y: -420}
   m_SizeDelta: {x: 360, y: 72}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1048055100
@@ -2103,7 +2104,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.75}
+  m_Color: {r: 0.04, g: 0.05, b: 0.07, a: 0.99215686}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
