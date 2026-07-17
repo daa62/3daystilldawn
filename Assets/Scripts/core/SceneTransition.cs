@@ -11,9 +11,12 @@ using UnityEngine.UI;
 // single place that gives every one of them the wipe.
 public class SceneTransition : MonoBehaviour
 {
-    const float FADE_SECONDS = 0.4f;
+    const float FADE_SECONDS = 2f;
 
     static SceneTransition active;   // one transition at a time
+
+    // e.g. CutscenePlayer keeps its black cover up while a transition is running
+    public static bool Active => active != null;
 
     Image cover;
 

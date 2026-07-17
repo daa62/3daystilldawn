@@ -101,7 +101,13 @@ public class CutscenePlayer : MonoBehaviour
     {
         active = null;
         var done = onDone;
-        Destroy(gameObject);
+        onDone = null;
         done?.Invoke();
+
+        // if that started a scene transition, hold our black cover until the scene
+        // swap destroys us — tearing it down now would flash the scene underneath
+        // (the title menu, after the intro) for the whole fade-out
+        if (!SceneTransition.Active)
+            Destroy(gameObject);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +23,8 @@ public class DialogueUI : MonoBehaviour
 
     static readonly Color PANEL_BG = new Color(0.04f, 0.05f, 0.07f, 0.94f);
 
+    const float CHARS_PER_SECOND = 45f;   // typewriter reveal speed
+
     GameObject panel;
     RectTransform panelRect;
     TextMeshProUGUI speakerLabel;
@@ -33,6 +36,7 @@ public class DialogueUI : MonoBehaviour
     readonly List<GameObject> choiceButtons = new List<GameObject>();
     Action onContinue;
     Action<int> onChoose;
+    Coroutine typing;   // non-null while the current line is still revealing
 
     void Awake()
     {
@@ -43,9 +47,13 @@ public class DialogueUI : MonoBehaviour
 
     void Update()
     {
-        // let Space / E advance a plain line (choices must be clicked)
-        if (IsOpen && shownFrame != Time.frameCount && continueButton.gameObject.activeSelf &&
-            (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E)))
+        if (!IsOpen || shownFrame == Time.frameCount) return;
+        if (!Input.GetKeyDown(KeyCode.Space) && !Input.GetKeyDown(KeyCode.E)) return;
+
+        // first press lands the still-typing line; the next one advances
+        if (typing != null)
+            completeTyping();
+        else if (continueButton.gameObject.activeSelf)   // choices must be clicked
             continueClicked();
     }
 
@@ -73,6 +81,7 @@ public class DialogueUI : MonoBehaviour
 
     public void close()
     {
+        if (typing != null) { StopCoroutine(typing); typing = null; }
         IsOpen = false;
         LastClosedFrame = Time.frameCount;
         onContinue = null;
@@ -94,11 +103,53 @@ public class DialogueUI : MonoBehaviour
         }
         shownFrame = Time.frameCount;
         speakerLabel.text = speaker;
-        bodyLabel.text = line;
+        bodyLabel.text = line;   // full text up front — layout sizes for the whole line
+        startTyping();
+    }
+
+    // ---- typewriter ----
+
+    void startTyping()
+    {
+        if (typing != null) StopCoroutine(typing);
+        choiceArea.gameObject.SetActive(false);   // options appear once the line lands
+        typing = StartCoroutine(typeLine());
+    }
+
+    IEnumerator typeLine()
+    {
+        bodyLabel.ForceMeshUpdate();
+        int total = bodyLabel.textInfo.characterCount;
+        bodyLabel.maxVisibleCharacters = 0;
+
+        float shown = 0f;
+        while (shown < total)
+        {
+            shown += CHARS_PER_SECOND * Time.deltaTime;
+            bodyLabel.maxVisibleCharacters = Mathf.Min(total, Mathf.FloorToInt(shown));
+            yield return null;
+        }
+        finishTyping();
+    }
+
+    void completeTyping()
+    {
+        StopCoroutine(typing);
+        finishTyping();
+    }
+
+    void finishTyping()
+    {
+        typing = null;
+        bodyLabel.maxVisibleCharacters = int.MaxValue;
+        choiceArea.gameObject.SetActive(true);
     }
 
     void continueClicked()
     {
+        // clicking Continue mid-type lands the line first, same as pressing E
+        if (typing != null) { completeTyping(); return; }
+
         Sfx.play(Sfx.UI_CLICK, 0.5f);
         Action cb = onContinue;
         onContinue = null;
