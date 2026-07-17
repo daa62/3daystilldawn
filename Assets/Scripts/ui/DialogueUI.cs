@@ -23,10 +23,12 @@ public class DialogueUI : MonoBehaviour
     static readonly Color PANEL_BG = new Color(0.04f, 0.05f, 0.07f, 0.94f);
 
     GameObject panel;
+    RectTransform panelRect;
     TextMeshProUGUI speakerLabel;
     TextMeshProUGUI bodyLabel;
     Button continueButton;
     RectTransform choiceArea;
+    GridLayoutGroup choiceGrid;
 
     readonly List<GameObject> choiceButtons = new List<GameObject>();
     Action onContinue;
@@ -56,6 +58,7 @@ public class DialogueUI : MonoBehaviour
         this.onChoose = null;
         clearChoices();
         continueButton.gameObject.SetActive(true);
+        relayout(0);
     }
 
     public void showChoice(string speaker, string line, string[] labels, Action<int> onChoose)
@@ -65,6 +68,7 @@ public class DialogueUI : MonoBehaviour
         this.onContinue = null;
         continueButton.gameObject.SetActive(false);
         buildChoices(labels);
+        relayout(labels.Length);
     }
 
     public void close()
@@ -127,6 +131,7 @@ public class DialogueUI : MonoBehaviour
 
         var bg = UiFactory.image(canvas.transform, "Panel", PANEL_BG);
         panel = bg.gameObject;
+        panelRect = bg.rectTransform;
         UiFactory.anchor(bg.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0));
         bg.rectTransform.anchoredPosition = new Vector2(0, 40);
         bg.rectTransform.sizeDelta = new Vector2(1500, 400);
@@ -157,13 +162,11 @@ public class DialogueUI : MonoBehaviour
         choiceArea.anchoredPosition = new Vector2(0, 24);
         choiceArea.sizeDelta = new Vector2(1000, 0);
 
-        var layout = areaGO.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 6f;
-        layout.childAlignment = TextAnchor.LowerCenter;
-        layout.childControlWidth = false;
-        layout.childControlHeight = false;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = false;
+        // grid so long menus (the give list) can wrap to two columns
+        choiceGrid = areaGO.AddComponent<GridLayoutGroup>();
+        choiceGrid.spacing = new Vector2(10f, 6f);
+        choiceGrid.childAlignment = TextAnchor.LowerCenter;
+        choiceGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
 
         var fitter = areaGO.AddComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -172,14 +175,36 @@ public class DialogueUI : MonoBehaviour
     void buildChoices(string[] labels)
     {
         clearChoices();
+
+        // short menus read best as one column; long ones wrap to two
+        int columns = labels.Length > 4 ? 2 : 1;
+        choiceGrid.constraintCount = columns;
+        choiceGrid.cellSize = new Vector2(columns == 2 ? 495f : 1000f, 42f);
+
         for (int i = 0; i < labels.Length; i++)
         {
             int index = i;
             var btn = UiFactory.button(choiceArea, "Choice" + i, labels[i], 20f);
-            btn.image.rectTransform.sizeDelta = new Vector2(1000, 42);
             btn.onClick.AddListener(() => choiceClicked(index));
             choiceButtons.Add(btn.gameObject);
         }
+    }
+
+    // grow the panel to fit long bodies and tall choice stacks — a fixed height let
+    // big give-menus climb up and over the body text
+    void relayout(int choiceCount)
+    {
+        float bodyH = Mathf.Max(60f, bodyLabel.GetPreferredValues(bodyLabel.text, 1420f, 0f).y);
+        bodyLabel.rectTransform.sizeDelta = new Vector2(1420f, bodyH);
+
+        int rows = choiceCount == 0 ? 0
+            : Mathf.CeilToInt(choiceCount / (float)choiceGrid.constraintCount);
+        float footerH = rows == 0
+            ? 100f                                                      // continue button row
+            : rows * choiceGrid.cellSize.y + (rows - 1) * choiceGrid.spacing.y + 48f;
+
+        float height = Mathf.Max(400f, 90f + bodyH + 24f + footerH);    // 90 = speaker header
+        panelRect.sizeDelta = new Vector2(1500f, height);
     }
 
     void clearChoices()
