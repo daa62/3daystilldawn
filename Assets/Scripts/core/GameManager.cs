@@ -81,7 +81,7 @@ public class GameManager : MonoBehaviour
     public const float  INTERACT_RANGE          = 5f;
     public const string INTERACTABLE_LAYER_NAME = "Interactable";
 
-    public const int INVENTORY_MAX_SLOTS = 10;
+    public const int INVENTORY_MAX_SLOTS = 6;
 
     public const string SCENE_TITLE     = "Title";
     public const string SCENE_INTRO     = "Intro";
@@ -99,7 +99,7 @@ public class GameManager : MonoBehaviour
     public const int TOTAL_DAYS          = 3;
     public const int FRIEND_HEALTH_START = 75;   // already bitten
     public const int FRIEND_BOND_START   = 20;   // the secret is creating distance
-    public const int FRIEND_HEALTH_DECAY = 30;   // per night, applied automatically
+    public const int FRIEND_HEALTH_DECAY = 50;   // per night, applied automatically
     public const int HEALTH_LINE         = 40;   // below this at the climax: TURNS
     public const int BOND_LINE           = 50;   // below this (health held): SLIPS_AWAY
     public const int BOND_TALK_AT_NIGHT  = 5;
